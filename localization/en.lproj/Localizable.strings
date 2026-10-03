@@ -516,7 +516,7 @@
 
 "privacy.section.storage" = "Data on your device";
 
-"privacy.storage" = "Saved games, learning progress, and settings stay in the app’s storage on your device. The bundled computer engine processes positions locally. Your operating system may include app data in device backups according to your backup settings.";
+"privacy.storage" = "Saved games, learning progress, and settings stay in the app’s storage on your device. The bundled computer engine processes positions locally. Android cloud backup and device-to-device transfer of app data are turned off, so the system does not copy this data off your device.";
 
 "privacy.section.sharing" = "Sharing and external links";
 

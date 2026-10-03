@@ -77,6 +77,7 @@ import com.frankzhu.xiangqi.l10n.UserFacingError
 import com.frankzhu.xiangqi.l10n.titleKey
 import com.frankzhu.xiangqi.ui.components.BoardMarker
 import com.frankzhu.xiangqi.ui.components.BoardView
+import com.frankzhu.xiangqi.ui.components.BoardWithPanel
 import com.frankzhu.xiangqi.ui.components.Footnote
 import com.frankzhu.xiangqi.ui.components.LabeledRow
 import com.frankzhu.xiangqi.ui.components.LoadingBox
@@ -347,16 +348,21 @@ fun StudyScreen(app: AppModel, recordId: String) {
     ) {
         val r = record
         when {
-            r != null -> Column(Modifier.fillMaxSize()) {
+            r != null -> {
                 val position = remember(r, ply) { runCatching { r.positionAfterPly(ply) }.getOrDefault(Position.standard) }
                 val last = if (ply > 0) Move.fromUci(r.moves[ply - 1].uci) else null
+                BoardWithPanel(
+                    aspect = 8f / 9.25f,
+                    board = { boardModifier ->
                 BoardView(
                     position = position, orientation = Side.RED,
                     markers = last?.let { listOf(BoardMarker(it.from, colors.accent.copy(alpha = 0.28f), MarkerStyle.CORNERS), BoardMarker(it.to, colors.accent.copy(alpha = 0.5f), MarkerStyle.CORNERS)) }.orEmpty(),
                     glyphSet = prefs.pieceGlyphs, showsCoordinates = prefs.coordinates.isVisible(Side.RED),
                     aspectRatio = 8f / 9.25f, boardLabel = l10n(L10n.Board.study),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    modifier = boardModifier
                 )
+                    },
+                    panel = {
                 val listState = rememberLazyListState()
                 LaunchedEffect(ply) { if (ply > 0) listState.animateScrollToItem((ply - 1 + 2).coerceAtMost(r.moves.size + 1)) }
                 LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = listState) {
@@ -397,6 +403,7 @@ fun StudyScreen(app: AppModel, recordId: String) {
                     Text(l10n(L10n.Study.plyProgress, ply, r.moves.size), color = colors.text, modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                     TextButton(onClick = { setPly(ply + 1) }, enabled = ply < r.moves.size) { Text(l10n(L10n.Common.next) + " ›", color = colors.accent.copy(alpha = if (ply < r.moves.size) 1f else 0.4f)) }
                 }
+                })
             }
             error != null -> UnavailableBox(Icons.Filled.Warning, l10n(L10n.Study.couldNotOpen), error?.text(l10n))
             else -> LoadingBox(l10n(L10n.Study.opening))
@@ -518,7 +525,9 @@ fun PracticeScreen(app: AppModel, recordId: String) {
                         add(BoardMarker(square, colors.legal, if (p.position.pieceAt(square) != null) MarkerStyle.RING else MarkerStyle.DOT))
                     }
                 }
-                Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                BoardWithPanel(
+                    aspect = 8f / 9.25f,
+                    board = { boardModifier ->
                     BoardView(
                         position = p.position, orientation = p.practiceSide, markers = markers,
                         glyphSet = prefs.pieceGlyphs, showsCoordinates = prefs.coordinates.isVisible(p.practiceSide),
@@ -526,9 +535,11 @@ fun PracticeScreen(app: AppModel, recordId: String) {
                         squareLabel = { square -> squareDescription(p.position, square, l10n) },
                         squareState = { square -> if (square in destinations) l10n(L10n.Board.legalDestination) else null },
                         onTap = ::tap,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        modifier = boardModifier
                     )
-                    Column(Modifier.fillMaxWidth().background(colors.surface).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    },
+                    panel = {
+                    Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).background(colors.surface).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(r.summary.event.nilIfEmpty() ?: r.summary.sourcePath, color = colors.text, fontWeight = FontWeight.SemiBold, fontSize = 17.sp, maxLines = 2)
                         Row {
                             Text(l10n(L10n.Practice.moveProgress, p.currentPly + 1, r.moves.size), color = colors.textSecondary, fontSize = 12.sp, modifier = Modifier.weight(1f))
@@ -553,7 +564,7 @@ fun PracticeScreen(app: AppModel, recordId: String) {
                             OutlinedButton(onClick = { app.navigate(AppRoute.StudyRecord(recordId)) }) { Text(l10n(L10n.Practice.studyLine), color = colors.text) }
                         }
                     }
-                }
+                })
             }
             error != null -> UnavailableBox(Icons.Filled.Warning, l10n(L10n.Practice.couldNotOpen), error?.text(l10n))
             else -> LoadingBox(l10n(L10n.Practice.opening))

@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -187,3 +190,42 @@ fun ThemeChoiceStrip(selectedId: String, onSelect: (String) -> Unit, modifier: M
 
 fun String?.nilIfEmpty(): String? = this?.trim()?.takeIf { it.isNotEmpty() }
 
+
+
+/** Sizes [content] to the largest rectangle of the given width/height [aspect] that fits, so a board never overflows. */
+@Composable
+fun FitBoard(modifier: Modifier, aspect: Float = 0.87f, content: @Composable (Modifier) -> Unit) {
+    androidx.compose.foundation.layout.BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
+        val width = minOf(maxWidth, maxHeight * aspect)
+        content(Modifier.width(width))
+    }
+}
+
+/**
+ * A board with a panel of controls: side by side in landscape (and on tablets), stacked in
+ * portrait with the board capped to just over half the height so the panel stays reachable.
+ */
+@Composable
+fun BoardWithPanel(
+    aspect: Float,
+    board: @Composable (Modifier) -> Unit,
+    panel: @Composable ColumnScope.() -> Unit
+) {
+    androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
+        if (maxWidth > maxHeight) {
+            Row(Modifier.fillMaxSize().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                FitBoard(Modifier.weight(1f).fillMaxHeight(), aspect) { board(it) }
+                Column(Modifier.weight(1f).fillMaxHeight(), content = panel)
+            }
+        } else {
+            val boardCap = maxHeight * 0.55f
+            Column(Modifier.fillMaxSize()) {
+                FitBoard(
+                    Modifier.fillMaxWidth().heightIn(max = boardCap).padding(horizontal = 16.dp, vertical = 8.dp),
+                    aspect
+                ) { board(it) }
+                Column(Modifier.weight(1f).fillMaxWidth(), content = panel)
+            }
+        }
+    }
+}

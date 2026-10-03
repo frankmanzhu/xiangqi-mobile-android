@@ -344,7 +344,7 @@ object L10n {
         }
 
         val sharing = LocalizedKey("privacy.sharing", "When you choose Share, the game record is passed to the recipient or service you select. Opening source-code or support links takes you to GitHub, which applies its own privacy policy. Information you submit in a GitHub issue may be public; avoid including private information.")
-        val storage = LocalizedKey("privacy.storage", "Saved games, learning progress, and settings stay in the app’s storage on your device. The bundled computer engine processes positions locally. Your operating system may include app data in device backups according to your backup settings.")
+        val storage = LocalizedKey("privacy.storage", "Saved games, learning progress, and settings stay in the app’s storage on your device. The bundled computer engine processes positions locally. Android cloud backup and device-to-device transfer of app data are turned off, so the system does not copy this data off your device.")
         val summary = LocalizedKey("privacy.summary", "Xiangqi is developed by Frank Zhu. The app works offline and does not collect or transmit personal data to the developer. It has no accounts, advertising, tracking, analytics, or automatic diagnostic uploads.")
         val title = LocalizedKey("privacy.title", "Privacy policy")
         val updated = LocalizedKey("privacy.updated", "Updated 4 October 2026")

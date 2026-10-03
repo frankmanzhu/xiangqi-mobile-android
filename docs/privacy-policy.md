@@ -6,7 +6,7 @@ Xiangqi is developed by Frank Zhu. The app works offline and does not collect or
 
 ## Data on your device
 
-Saved games, learning progress, and settings stay in the app’s storage on your device. The bundled computer engine processes positions locally. Automatic Android backup of app data is turned off; your device may still include app data in a device-to-device transfer according to your device settings.
+Saved games, learning progress, and settings stay in the app’s storage on your device. The bundled computer engine processes positions locally. Android cloud backup and device-to-device transfer of app data are turned off, so this data is not copied off the device by the system.
 
 ## Sharing and external links
 

@@ -81,7 +81,7 @@ class HomeAndSettingsUiTest : AppUiTest() {
     fun appearanceAndInteractionSettingsPersistAcrossRelaunch() {
         openSettings()
         clickNth(t(L10n.Settings.PieceLabelsOption.simplified), 1) // second group: piece labels
-        click(L10n.Common.off)
+        clickNth(t(L10n.Common.off), 0) // scroll into view on short screens
         rule.onNodeWithText(t(L10n.Settings.confirmMoves)).performScrollTo().performClick()
         rule.onNodeWithText(t(L10n.Settings.sounds)).performScrollTo().performClick()
         rule.onNodeWithText(t(L10n.Settings.haptics)).performScrollTo().performClick()

@@ -1,0 +1,104 @@
+# Google Play submission package
+
+Prepared 4 October 2026 for version 1.0 (versionCode 1), package `com.frankzhu.xiangqimobile`.
+
+## Store listing draft
+
+- **App name:** Xiangqi Mobile (availability must be checked in Play Console; limit 30 characters).
+- **Short description (80 max):** Play and study Chinese chess offline with the Pikafish engine.
+- **Category:** Games → Board. **Tags:** Board, Strategy, Puzzle, Offline.
+- **Price:** Free; no advertising or in-app purchases.
+- **Languages:** English, Simplified Chinese (zh-CN), Traditional Chinese (zh-TW). The app switches language inside Settings regardless of the device language.
+- **Developer name / contact:** Frank Zhu. A contact email, and optionally a website, are required by Play Console and are the owner's to enter.
+- **Privacy policy URL:** https://github.com/frankmanzhu/xiangqi-mobile-android/blob/main/docs/privacy-policy.md
+- **Support URL:** https://github.com/frankmanzhu/xiangqi-mobile-android/blob/main/docs/support.md
+- **Source code:** https://github.com/frankmanzhu/xiangqi-mobile-android
+
+### Full description (4000 max)
+
+Play Chinese chess wherever you are. Challenge the bundled Pikafish engine, share your device with a friend, or explore a library of more than 145,000 recorded games and practice lines — all offline.
+
+• Play offline against five computer strengths.
+• Play two-player games on one device.
+• Choose casual play or 10- and 15-minute clocks.
+• Save and resume your active game, review every move, and share portable game records.
+• Use staged hints and undo in casual games.
+• Browse openings, endgames, tactics, matches, and mating exercises, and practise them move by move.
+• Choose the Classic, Tournament (dark), or Calm board theme.
+• Use English, Simplified Chinese, or Traditional Chinese, with Traditional or Simplified piece labels.
+• Works with TalkBack: every point on the board is labelled.
+
+No account, ads, tracking, or in-app purchases. Games, progress, and settings stay on your device, and the app does not use the network. New games use the pinned Pikafish Computer Rule, including repetition, perpetual checking and chasing, and draw adjudication.
+
+Xiangqi Mobile is free software (GPL-3.0-or-later). Source code and licence notices are linked from the app.
+
+### What's new (500 max)
+
+First release for Android: play Pikafish offline, two-player mode, 145,000+ games and puzzles to study, three themes, and English / 简体中文 / 繁體中文.
+
+## Graphic assets (this repository)
+
+| Asset | File | Play requirement |
+| --- | --- | --- |
+| App icon | `docs/play-store/icon-512.png` | 512×512 PNG |
+| Feature graphic | `docs/play-store/feature-graphic.png` | 1024×500 (a crop of the app artwork — replace with marketing art if desired) |
+| Phone screenshots | `docs/play-store/phone/*.png` | 8 captures, 1080×2400, from the real app on an Android 15 emulator |
+| 10-inch tablet screenshots | `docs/play-store/tablet-10in/*.png` | 8 captures, 2560×1600 |
+
+The screenshots are raw captures (no device frames or captions) taken with demo-mode status bars by `StoreScreenshotsTest`; regenerate them with the command in that file. The launcher icon is the iOS app's artwork as an adaptive icon (with a themed monochrome layer and PNG fallbacks for Android 7).
+
+## Play Console declarations
+
+- **App access:** all functionality is available without an account or credentials.
+- **Ads:** the app contains no ads.
+- **Content rating (IARC):** complete the questionnaire accurately. The app has no violence beyond abstract board-game captures, no user-generated content or chat, no gambling or simulated gambling, no web browsing, no location sharing, and no purchases. The historical game corpus contains player names and event titles from public records. Expect an "Everyone"-class rating, but use the rating the questionnaire produces.
+- **Target audience:** choose an adult or 13+ audience. The game is suitable for children, but do not opt into the Designed for Families program merely because of that.
+- **Data safety:** *No data collected, no data shared.* The app declares no `INTERNET` permission, has no analytics, advertising or crash-reporting SDK, and stores games, learning progress and settings only on the device. "Share game record" hands text to the app the user picks through Android's share sheet, which is user-initiated and not collection by the developer. Android's automatic backup is disabled. Data deletion: uninstalling or clearing storage removes everything; there is no account to delete.
+- **Permissions:** only `VIBRATE` (a normal permission that needs no runtime prompt). No sensitive permissions, background location, SMS or call-log access.
+- **Government, news, health, financial features:** none.
+- **Export / encryption:** the app implements no network protocol or custom cryptography; a SHA-256 checksum verifies the bundled network file.
+
+## Build and signing
+
+1. Check out this repository and the iOS repository side by side (`../xiangqi-mobile`, with `git lfs pull`) so the full learning corpus is bundled. A release build refuses the small subset unless explicitly allowed.
+2. Create an **upload key** once and keep it out of the repository:
+
+   ```sh
+   keytool -genkeypair -v -keystore xiangqi-upload.jks -alias upload -keyalg RSA -keysize 4096 -validity 10000
+   ```
+
+3. Build the bundle:
+
+   ```sh
+   export XIANGQI_KEYSTORE=$PWD/xiangqi-upload.jks XIANGQI_KEYSTORE_PASSWORD=… XIANGQI_KEY_ALIAS=upload XIANGQI_KEY_PASSWORD=…
+   ./gradlew :app:bundleRelease
+   python3 scripts/check_release.py --aab app/build/outputs/bundle/release/app-release.aab
+   ```
+
+4. Enrol in **Play App Signing** when creating the app, then upload `app/build/outputs/bundle/release/app-release.aab`.
+
+**Size.** The release bundle is about 177 MB, under Play's 200 MB limit for a base module, because the 205 MB learning database compresses well. If the corpus grows past the limit, move `learning/ccpd.sqlite3` into a Play Asset Delivery install-time pack. Allow roughly 450 MB of free storage on the device: the APK, plus the database and network copied out of it on first use.
+
+**Devices.** Android 7.0 and newer, 64-bit ARM (`arm64-v8a`) and x86-64 (`x86_64`). The Play Console device catalogue will therefore exclude 32-bit-only phones, which is expected: Pikafish requires a 64-bit build.
+
+## Review notes (for the Play Console "App access / instructions" field)
+
+The app works fully offline and needs no reviewer account. On the home screen, *Play Computer* starts a game against the bundled engine, *Two Players* starts a shared-device game, and *Learn and practice* opens the bundled library (the first open takes a few seconds while the database is copied out of the package). *Settings* contains the privacy policy, the rules explanation, licence notices, the source-code link and the support link. No executable code, neural-network weights, or learning data are downloaded at runtime.
+
+## Licensing evidence
+
+The licence is **GPL-3.0-or-later**, identical to the iOS app (`scripts/check_release.py` verifies the `LICENSE` file and the bundled notices byte-for-byte against the iOS repository). The learning database contains 145,065 records: 58,456 CCPD records under CC BY 4.0, 14,386 WXF records, and 72,223 Dongping records; attribution, modification notices, source revision and checksum are recorded in `app/src/main/assets/learning/`. The WXF and Dongping collections are retained at the owner's request because they are publicly available online; **their redistribution rights remain undocumented**, and this preference is not a licence grant or legal clearance. Pikafish publishes separate NNUE weight terms restricting commercial use without permission; the intended release is free with no ads or purchases, and the original download/version provenance of the bundled weights is not recorded in either repository. Record it before signing off the weight-licensing gate: https://www.pikafish.com/list.html?lang=zh-CN
+
+For every distributed version the complete corresponding source is this repository at the matching tag, including the Pikafish sources at the pinned revision, the C++ bridge and JNI layer, build scripts and the bundled network. A public repository and bundled notices alone do not establish that Google Play distribution satisfies every GPL obligation; review that distribution route before treating licensing as closed.
+
+## Verification
+
+```sh
+python3 scripts/l10n.py check
+./gradlew :core:test :app:testDebugUnitTest :app:lintDebug
+./gradlew :app:connectedDebugAndroidTest      # emulator or device
+./gradlew :app:assembleRelease :app:bundleRelease
+python3 scripts/check_release.py
+```
+
+Current outcomes and the remaining gates are recorded in `release-readiness.md`. Passing these checks is evidence for a release candidate, not a promise of Play review acceptance.

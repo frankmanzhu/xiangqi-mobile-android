@@ -25,12 +25,25 @@ This is the Android sibling of the iOS app, [frankmanzhu/xiangqi-mobile](https:/
 ## Build and test
 
 ```bash
-./gradlew :app:assembleDebug            # debug APK in app/build/outputs/apk/debug
+./gradlew :app:assembleDebug              # debug APK in app/build/outputs/apk/debug
 ./gradlew :core:test :app:testDebugUnitTest
 ./gradlew :app:lintDebug
-./gradlew :app:connectedDebugAndroidTest  # needs an emulator or device; exercises the real engine and SQLite
-python3 scripts/l10n.py check            # translations complete, referenced, and in sync
+./gradlew :app:connectedDebugAndroidTest  # needs an emulator or device; see below
+python3 scripts/l10n.py check              # translations complete, referenced, and in sync
+python3 scripts/check_release.py           # pre-submission checks on the release artifacts
 ```
+
+### What the tests cover
+
+- **`core` unit tests (JVM, fast):** rules and FEN/UCI, iOS-compatible save-file JSON, Chinese-notation PGN fixtures (including Big5), the game session with a fake engine (input, hints, undo, replay, clocks, persistence failures, the duplicate-search race), puzzle sessions, learning progress, sound synthesis.
+- **`app` unit tests:** localization completeness and placeholder parity, language resolution, preference migration, the Simplified/Traditional search table.
+- **Instrumented tests (on a device, real engine and database):**
+  - end-to-end UI flows for every screen: home, settings (language, theme, labels, toggles, licences, privacy), new game, hot-seat and computer games, selection and legal-move markers, captures, history and replay, undo, hints, flipping, move confirmation, clocks, resign and result, save/resume, rotation, backgrounding, learning browse/search/study/bookmark/practice;
+  - Pikafish rule fixtures ported from the iOS smoke test, search cancellation, back-to-back searches;
+  - rules agreement: thousands of random plies replayed through both the Kotlin rules and Pikafish, plus a sample of every corpus category and every bundled puzzle;
+  - persistence round-trips and rejection of unsupported save files; resource and checksum integrity.
+
+Run the whole suite on a phone, a tablet and the oldest supported release (Android 7.0, API 24). CI runs it on an API 34 emulator for every push. `StoreScreenshotsTest` is a developer tool that regenerates the Play Store screenshots; it is skipped unless asked for.
 
 Release builds are minified with R8 and signed from the environment (nothing secret is committed):
 
@@ -38,6 +51,8 @@ Release builds are minified with R8 and signed from the environment (nothing sec
 export XIANGQI_KEYSTORE=/path/to/keystore.jks XIANGQI_KEYSTORE_PASSWORD=… XIANGQI_KEY_ALIAS=… XIANGQI_KEY_PASSWORD=…
 ./gradlew :app:assembleRelease :app:bundleRelease
 ```
+
+Submission material is in [`docs/play-store-submission.md`](docs/play-store-submission.md) (listing, declarations, signing) and [`docs/release-readiness.md`](docs/release-readiness.md) (evidence and the gates still open).
 
 ## Project layout
 
@@ -50,7 +65,7 @@ export XIANGQI_KEYSTORE=/path/to/keystore.jks XIANGQI_KEYSTORE_PASSWORD=… XIAN
 | `localization/` | `.strings` files — the same format and keys as the iOS app. |
 | `app/learning-lite/` | The small fallback learning database (see below). |
 | `scripts/` | `l10n.py` (catalog generator and checker), `build_learning_db.py`. |
-| `docs/` | Porting notes and parity matrix. |
+| `docs/` | Porting notes, privacy policy, support page, Play Store submission package, release readiness, store graphics and screenshots. |
 
 ## Localization
 

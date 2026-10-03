@@ -88,6 +88,7 @@ import com.frankzhu.xiangqi.l10n.text
 import com.frankzhu.xiangqi.l10n.titleKey
 import com.frankzhu.xiangqi.ui.components.BoardMarker
 import com.frankzhu.xiangqi.ui.components.BoardView
+import com.frankzhu.xiangqi.ui.components.FitBoard
 import com.frankzhu.xiangqi.ui.components.MarkerStyle
 import com.frankzhu.xiangqi.ui.components.squareDescription
 import com.frankzhu.xiangqi.ui.theme.ThemeRegistry
@@ -156,16 +157,6 @@ fun GameScreen(app: AppModel, session: GameSession) {
     }
 }
 
-/** Sizes the board to the largest 0.87-aspect rectangle that fits, so it never overflows in either orientation. */
-@Composable
-private fun FitBoard(modifier: Modifier, content: @Composable (Modifier) -> Unit) {
-    BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
-        val width = minOf(maxWidth, maxHeight * BOARD_ASPECT)
-        content(Modifier.width(width))
-    }
-}
-
-private const val BOARD_ASPECT = 0.87f
 
 @Composable
 private fun GameTopBar(state: GameState, onLeave: () -> Unit, onMenu: () -> Unit) {
@@ -188,7 +179,7 @@ private fun StatusLine(state: GameState) {
     val colors = LocalXiangqiTheme.current.colors
     val l10n = LocalLocalizer.current
     Row(
-        Modifier.height(28.dp).semantics(mergeDescendants = true) {},
+        Modifier.heightIn(min = 28.dp).semantics(mergeDescendants = true) {},
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         if (state.isThinking) CircularProgressIndicator(Modifier.size(16.dp), color = colors.accent, strokeWidth = 2.dp)
@@ -214,14 +205,14 @@ private fun PlayerRail(state: GameState, side: Side, isOpponent: Boolean) {
     }
     val clock = if (side == Side.RED) record.redSecondsRemaining else record.blackSecondsRemaining
     Row(
-        Modifier.fillMaxWidth().height(42.dp)
+        Modifier.fillMaxWidth().heightIn(min = 42.dp)
             .background(colors.surface.copy(alpha = 0.82f), theme.cardShape(14.dp))
             .border(if (isActive) 1.5.dp else 1.dp, if (isActive) colors.accent.copy(alpha = 0.55f) else theme.border, theme.cardShape(14.dp))
             .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(Modifier.size(10.dp).background(if (side == Side.RED) colors.red else colors.black, CircleShape))
-        Text(label, color = colors.text, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, modifier = Modifier.padding(start = 8.dp).weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(label, color = colors.text, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, modifier = Modifier.padding(start = 8.dp, end = 8.dp).weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
         if (clock != null) {
             Text("%02d:%02d".format(clock / 60, clock % 60), color = colors.text, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.SemiBold)
         } else {
@@ -290,7 +281,7 @@ private fun ConfirmationBar(session: GameSession, move: Move) {
     val colors = theme.colors
     val l10n = LocalLocalizer.current
     Row(
-        Modifier.fillMaxWidth().height(58.dp).background(colors.surface, theme.cardShape(14.dp)).padding(horizontal = 12.dp),
+        Modifier.fillMaxWidth().heightIn(min = 58.dp).background(colors.surface, theme.cardShape(14.dp)).padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Column(Modifier.weight(1f)) {
@@ -309,7 +300,7 @@ private fun ConfirmationBar(session: GameSession, move: Move) {
 private fun ActionDock(session: GameSession, state: GameState, onShowHistory: () -> Unit) {
     val scope = rememberCoroutineScope()
     val record = state.record
-    Row(Modifier.fillMaxWidth().height(58.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+    Row(Modifier.fillMaxWidth().height(androidx.compose.foundation.layout.IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         DockAction(L10n.Game.undo, Icons.AutoMirrored.Filled.Undo, record.timeControl == TimeControl.CASUAL && record.moves.isNotEmpty()) {
             scope.launch { session.undo() }
         }
@@ -335,7 +326,7 @@ private fun androidx.compose.foundation.layout.RowScope.DockAction(
     val colors = theme.colors
     val l10n = LocalLocalizer.current
     Column(
-        Modifier.weight(1f).height(52.dp)
+        Modifier.weight(1f).fillMaxHeight().heightIn(min = 52.dp)
             .background(colors.surface.copy(alpha = if (enabled) 1f else 0.42f), theme.controlShape)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
