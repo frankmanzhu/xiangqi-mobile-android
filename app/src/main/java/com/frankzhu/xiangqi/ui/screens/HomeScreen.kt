@@ -1,6 +1,10 @@
 package com.frankzhu.xiangqi.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
+import com.frankzhu.xiangqi.R
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -64,12 +68,11 @@ fun HomeScreen(app: AppModel) {
         ) {
             // Header
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Box(
-                    Modifier.size(52.dp).background(colors.accent, theme.cardShape(12.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("帥", color = colors.onAccent, fontSize = 28.sp, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold)
-                }
+                Image(
+                    painter = painterResource(R.drawable.app_mark),
+                    contentDescription = null,
+                    modifier = Modifier.size(52.dp).clip(theme.cardShape(12.dp))
+                )
                 Column(Modifier.weight(1f)) {
                     Text(l10n(L10n.Home.title), color = colors.text, fontSize = 28.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Serif)
                     Text(l10n(L10n.Home.wordmark), color = colors.textSecondary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 3.sp)

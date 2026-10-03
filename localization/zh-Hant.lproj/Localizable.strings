@@ -548,3 +548,10 @@
 "learn.subcategory.dongpingMatches" = "Dongping ICCS 對局";
 
 "learn.subcategory.wxfMatches" = "WXF ICCS 對局";
+
+/* Android-only: third-party library notice */
+"licenses.section.libraries" = "Android 元件庫";
+
+"licenses.libraries.note" = "此 Android 應用程式使用 AndroidX、Jetpack Compose、Kotlin 與 kotlinx 元件庫建置，均依據 Apache License 2.0 授權。";
+
+"licenses.apache" = "Apache License 2.0";

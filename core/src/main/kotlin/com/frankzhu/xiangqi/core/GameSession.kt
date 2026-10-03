@@ -130,10 +130,17 @@ class GameSession(
         startClock()
     }
 
+    /**
+     * Starts the clock and, when it is the computer's turn, its search. Safe to call repeatedly and
+     * from any thread: it always runs on the session's own dispatcher, and a search or commit that is
+     * already in flight is never doubled up.
+     */
     fun startIfNeeded() {
-        startClock()
-        val s = current
-        if (s.record.mode == GameMode.COMPUTER && !s.isLocalTurn && s.record.isActive) startComputerTurn()
+        scope.launch {
+            startClock()
+            val s = current
+            if (s.record.mode == GameMode.COMPUTER && !s.isLocalTurn && s.record.isActive) startComputerTurn()
+        }
     }
 
     /** Stops searching and the clock, then writes the record to disk. */
@@ -357,6 +364,9 @@ class GameSession(
     private fun startComputerTurn() {
         val s = current
         if (s.record.mode != GameMode.COMPUTER || s.isLocalTurn || !s.record.isActive || s.isThinking) return
+        // The search job stays active through its own commit, which is the window in which the
+        // visible state can briefly say "computer to move" while the engine's move is being applied.
+        if (searchJob?.isActive == true) return
         val version = positionVersion
         val snapshotFen = s.position.fen
         val moves = s.record.uciMoves

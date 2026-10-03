@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- A xiangqi piece silhouette: disc outline with the 帥 stroke mass inside. -->
+    <path android:strokeColor="#FFFFFFFF" android:strokeWidth="4" android:fillColor="#00000000"
+        android:pathData="M54,54m-24,0a24,24 0,1 1,48 0a24,24 0,1 1,-48 0" />
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M42,40h10v3h-4v6h5v3h-5v5h6v3h-13v-3h4v-5h-5v-3h5v-6h-3z M56,38h3v6h7v14h-3v-11h-4v17h-3v-17h0z" />
+</vector>

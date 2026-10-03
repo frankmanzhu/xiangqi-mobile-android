@@ -548,3 +548,10 @@
 "learn.subcategory.dongpingMatches" = "Dongping ICCS matches";
 
 "learn.subcategory.wxfMatches" = "WXF ICCS matches";
+
+/* Android-only: third-party library notice */
+"licenses.section.libraries" = "Android libraries";
+
+"licenses.libraries.note" = "This Android app is built with AndroidX, Jetpack Compose, Kotlin and the kotlinx libraries, all licensed under the Apache License 2.0.";
+
+"licenses.apache" = "Apache License 2.0";

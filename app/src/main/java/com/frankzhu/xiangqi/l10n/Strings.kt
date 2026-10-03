@@ -232,6 +232,7 @@ object L10n {
     }
 
     object Licenses {
+        val apache = LocalizedKey("licenses.apache", "Apache License 2.0")
         val bundledNotice = LocalizedKey("licenses.bundledNotice", "Bundled notice")
         object Ccpd {
             val authors = LocalizedKey("licenses.ccpd.authors", "Yu-Han Tseng and Bo-Nian Chen (2026)")
@@ -251,9 +252,15 @@ object L10n {
         }
 
         val gpl = LocalizedKey("licenses.gpl", "GNU GPL v3")
+        object Libraries {
+            val note = LocalizedKey("licenses.libraries.note", "This Android app is built with AndroidX, Jetpack Compose, Kotlin and the kotlinx libraries, all licensed under the Apache License 2.0.")
+        }
+
         object Section {
             val engine = LocalizedKey("licenses.section.engine", "Computer engine")
             val learning = LocalizedKey("licenses.section.learning", "Learning content")
+            /** Android-only: third-party library notice */
+            val libraries = LocalizedKey("licenses.section.libraries", "Android libraries")
         }
 
         val title = LocalizedKey("licenses.title", "Licenses")

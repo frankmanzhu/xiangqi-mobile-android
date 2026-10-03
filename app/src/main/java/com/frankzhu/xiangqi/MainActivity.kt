@@ -65,7 +65,8 @@ fun XiangqiRoot(app: AppModel) {
     CompositionLocalProvider(LocalLocalizer provides localizer) {
         XiangqiThemeProvider(theme) {
             val route = app.path.lastOrNull()
-            BackHandler(enabled = route != null && route != AppRoute.Game && route != AppRoute.Settings) { app.back() }
+            // Settings sub-pages register their own (later, so winning) handler; the game screen has its own too.
+            BackHandler(enabled = route != null && route != AppRoute.Game) { app.back() }
             when (route) {
                 null -> HomeScreen(app)
                 is AppRoute.Setup -> NewGameScreen(app, route.mode)

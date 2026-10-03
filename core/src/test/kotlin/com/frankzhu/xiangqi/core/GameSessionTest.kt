@@ -105,6 +105,22 @@ class GameSessionTest {
     }
 
     @Test
+    fun repeatedStartRequestsNeverLaunchASecondSearch() = runTest {
+        val computer = FirstLegalMoveComputer()
+        val s = session(GameRecord.create(GameMode.COMPUTER, Side.BLACK, orientation = Side.BLACK), computer = computer)
+        // The screen, the lifecycle observer and the app model all ask for the opening move.
+        repeat(5) { s.startIfNeeded() }
+        runCurrent()
+        assertEquals(1, computer.calls)
+        assertEquals(1, s.state.value.record.moves.size)
+        // Asking again once the game is the human's turn is a no-op too.
+        repeat(3) { s.startIfNeeded() }
+        runCurrent()
+        assertEquals(1, computer.calls)
+        s.close()
+    }
+
+    @Test
     fun illegalEngineMoveIsRejectedWithMismatch() = runTest {
         val computer = FirstLegalMoveComputer().apply { override = Move.fromUci("a0a9") }
         val s = session(GameRecord.create(GameMode.COMPUTER, Side.RED), computer = computer)

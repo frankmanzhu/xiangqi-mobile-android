@@ -81,6 +81,7 @@ import com.frankzhu.xiangqi.ui.components.Footnote
 import com.frankzhu.xiangqi.ui.components.LabeledRow
 import com.frankzhu.xiangqi.ui.components.LoadingBox
 import com.frankzhu.xiangqi.ui.components.MarkerStyle
+import com.frankzhu.xiangqi.ui.components.squareDescription
 import com.frankzhu.xiangqi.ui.components.ScreenScaffold
 import com.frankzhu.xiangqi.ui.components.SettingsSection
 import com.frankzhu.xiangqi.ui.components.UnavailableBox
@@ -522,7 +523,9 @@ fun PracticeScreen(app: AppModel, recordId: String) {
                         position = p.position, orientation = p.practiceSide, markers = markers,
                         glyphSet = prefs.pieceGlyphs, showsCoordinates = prefs.coordinates.isVisible(p.practiceSide),
                         aspectRatio = 8f / 9.25f, boardLabel = l10n(L10n.Board.practice),
-                        squareLabel = { it.uci }, onTap = ::tap,
+                        squareLabel = { square -> squareDescription(p.position, square, l10n) },
+                        squareState = { square -> if (square in destinations) l10n(L10n.Board.legalDestination) else null },
+                        onTap = ::tap,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                     )
                     Column(Modifier.fillMaxWidth().background(colors.surface).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {

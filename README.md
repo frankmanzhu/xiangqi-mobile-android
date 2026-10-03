@@ -71,9 +71,20 @@ Release builds (`assembleRelease`, `bundleRelease`) **refuse to use the subset**
 
 The subset is rebuilt with `python3 scripts/build_learning_db.py` (GitHub rejects files over 100 MB, which is why the full file is not committed here).
 
-## Licences
+## Licensing and source availability
 
-Original source is GPL-3.0-or-later (see `LICENSE`). Bundled third-party work:
+Copyright (c) 2026 Frank Zhu
 
-- [Pikafish](https://github.com/official-pikafish/Pikafish) — GPL-3.0, with its NNUE network under its own terms (see the in-app Licences screen and `assets/licenses/`).
-- [Chinese Chess Practical Dataset](https://github.com/Yvonne761/Chinese-Chess-Practical-Dataset) (CCPD) — CC BY 4.0, plus validated ICCS match collections.
+Xiangqi Mobile for Android is licensed under the GNU General Public License, version 3 or any later version (GPL-3.0-or-later), exactly like the [iOS app](https://github.com/frankmanzhu/xiangqi-mobile); the root [`LICENSE`](LICENSE) file is identical. The app embeds Pikafish in-process through JNI, so the Kotlin application and the linked engine source are provided under GPL-3.0-or-later. Bundled learning data and NNUE weights keep their separate terms; the software licence does not relicense those resources. The complete GPL text, Pikafish attribution, authors list, NNUE notice and CCPD notice are bundled in the app (`app/src/main/assets/licenses`) and shown in **Settings → Licences**, along with the Apache-2.0 notice for the Android libraries (AndroidX, Jetpack Compose, Kotlin, kotlinx).
+
+For every distributed version, the complete corresponding source is the matching release tag or commit of this repository. It contains the Kotlin application and UI source, the Pikafish sources at the pinned revision (`app/src/main/cpp/pikafish`, revision `6a59ee2f7b105bff64d9efc2692591107787e2b1`, the same one the iOS app uses), the C++ bridge and JNI layer, the Gradle build, scripts, and the bundled Pikafish network (`app/src/main/assets/engine/pikafish.nnue`). The learning database is built from the iOS repository's `Resources/Learning/ccpd.sqlite3` (see above).
+
+Anyone may rebuild, modify, sign and install the app with their own keystore; no credentials of this project are needed and a pull request is not required to exercise those rights. To build a modified copy:
+
+1. Install JDK 17, the Android SDK (platform 36), NDK 27.2.12479018 and CMake 3.22.1.
+2. Clone this repository at the release tag, and clone the iOS repository next to it (`git lfs pull` there) so the full learning database is bundled. Without it, debug builds fall back to the small subset.
+3. Change `applicationId` in `app/build.gradle.kts` if you want to install it next to the store build, then run `./gradlew :app:assembleDebug` (or `:app:assembleRelease` with the signing environment variables above) and install the APK.
+
+Pikafish's GPL licence cannot be removed by changing this README or the project's licence label. Avoiding GPL obligations would require replacing Pikafish or obtaining relicensing permission from the relevant Pikafish copyright holders. Pikafish publishes separate NNUE weight terms restricting commercial use without permission ([terms](https://www.pikafish.com/list.html?lang=zh-CN)); the app is free and has no ads or purchases.
+
+The learning corpus is separate data, not software. The original CCPD portion is available under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), with attribution and modification notices in `app/src/main/assets/learning/CCPD-source.json` and `app/src/main/assets/licenses/CCPD-CC-BY-4.0.txt`. The added public ICCS collections (WXF, Dongping) are described in `app/src/main/assets/learning/CCPD-merged-sources.json`; their redistribution rights are not documented and the app does not claim that GPL-3.0-or-later relicenses any game data.

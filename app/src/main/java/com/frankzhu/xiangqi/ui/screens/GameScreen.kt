@@ -89,6 +89,7 @@ import com.frankzhu.xiangqi.l10n.titleKey
 import com.frankzhu.xiangqi.ui.components.BoardMarker
 import com.frankzhu.xiangqi.ui.components.BoardView
 import com.frankzhu.xiangqi.ui.components.MarkerStyle
+import com.frankzhu.xiangqi.ui.components.squareDescription
 import com.frankzhu.xiangqi.ui.theme.ThemeRegistry
 import com.frankzhu.xiangqi.ui.theme.XiangqiThemeProvider
 import com.frankzhu.xiangqi.ui.theme.LocalXiangqiTheme
@@ -133,12 +134,13 @@ fun GameScreen(app: AppModel, session: GameSession) {
                     } else {
                         Column(
                             Modifier.weight(1f).fillMaxWidth().widthIn(max = 680.dp).padding(horizontal = 12.dp).padding(bottom = 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            // Centre the whole stack so the rails hug the board on tall screens.
+                            verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             PlayerRail(state, state.record.orientation.opponent, isOpponent = true)
                             StatusLine(state)
-                            FitBoard(Modifier.weight(1f).padding(horizontal = 8.dp)) { BoardArea(app, session, state, it) }
+                            FitBoard(Modifier.weight(1f, fill = false).padding(horizontal = 8.dp)) { BoardArea(app, session, state, it) }
                             PlayerRail(state, state.record.orientation, isOpponent = false)
                             BottomControls(session, state) { showHistory = true }
                         }
@@ -269,15 +271,7 @@ private fun BoardArea(app: AppModel, session: GameSession, state: GameState, mod
         showsCoordinates = prefs.coordinates.isVisible(orientation),
         modifier = modifier,
         boardLabel = l10n(L10n.Board.label),
-        squareLabel = { square ->
-            val piece = shown.pieceAt(square)
-            if (piece == null) {
-                l10n(L10n.Board.Square.empty, square.uci)
-            } else {
-                l10n(L10n.Board.Square.occupied, l10n(piece.side.titleKey), l10n(piece.kind.titleKey), square.uci,
-                    l10n(if (piece.side == shown.sideToMove) L10n.Board.State.selectable else L10n.Board.State.occupied))
-            }
-        },
+        squareLabel = { square -> squareDescription(shown, square, l10n) },
         squareState = { square -> if (square in state.legalDestinations) l10n(L10n.Board.legalDestination) else null },
         onTap = session::tap,
         onDrag = session::drag
@@ -433,7 +427,7 @@ private fun GameMenuSheet(app: AppModel, session: GameSession, state: GameState,
     val scope = rememberCoroutineScope()
     var confirmResign by rememberSaveable { mutableStateOf(false) }
 
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = colors.background) {
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = colors.background, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 24.dp).verticalScroll(rememberScrollState())) {
             Text(l10n(L10n.Game.menu), color = colors.text, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
             MenuRow(l10n(L10n.Common.resume)) { onDismiss() }
@@ -483,7 +477,7 @@ private fun ResultSheet(app: AppModel, session: GameSession, state: GameState, o
         result.winner == null -> l10n(L10n.Result.draw)
         else -> l10n(L10n.Result.wins, l10n(result.winner!!.titleKey))
     }
-    ModalBottomSheet(onDismissRequest = session::dismissResult, containerColor = colors.background) {
+    ModalBottomSheet(onDismissRequest = session::dismissResult, containerColor = colors.background, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(
             Modifier.fillMaxWidth().padding(horizontal = 28.dp).padding(bottom = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)

@@ -47,6 +47,7 @@ import com.frankzhu.xiangqi.core.Square
 import com.frankzhu.xiangqi.data.PieceGlyphSet
 import com.frankzhu.xiangqi.l10n.L10n
 import com.frankzhu.xiangqi.l10n.LocalLocalizer
+import com.frankzhu.xiangqi.l10n.titleKey
 import com.frankzhu.xiangqi.ui.theme.LocalXiangqiTheme
 import com.frankzhu.xiangqi.ui.theme.XiangqiTheme
 import kotlin.math.max
@@ -365,3 +366,17 @@ fun lastMoveMarkers(move: Move?, color: Color, style: MarkerStyle = MarkerStyle.
         BoardMarker(move.from, color.copy(alpha = 0.3f), style),
         BoardMarker(move.to, color.copy(alpha = 0.45f), style)
     )
+
+
+/**
+ * The spoken description of a board point, shared by every interactive board:
+ * "Red Cannon, h2, selectable" for a piece, "Empty e2" for a free point.
+ */
+fun squareDescription(position: Position, square: Square, l10n: com.frankzhu.xiangqi.l10n.Localizer): String {
+    val piece = position.pieceAt(square) ?: return l10n(L10n.Board.Square.empty, square.uci)
+    return l10n(
+        L10n.Board.Square.occupied,
+        l10n(piece.side.titleKey), l10n(piece.kind.titleKey), square.uci,
+        l10n(if (piece.side == position.sideToMove) L10n.Board.State.selectable else L10n.Board.State.occupied)
+    )
+}

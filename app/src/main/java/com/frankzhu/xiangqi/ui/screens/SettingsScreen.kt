@@ -255,6 +255,10 @@ private fun Licenses(onBack: () -> Unit) {
                 asset("Pikafish-NNUE-NOTICE")?.let { Disclosure(l10n(L10n.Licenses.bundledNotice), it) }
                 asset("Pikafish-GPL-3.0")?.let { Disclosure(l10n(L10n.Licenses.gpl), it, mono = true) }
             }
+            SettingsSection(l10n(L10n.Licenses.Section.libraries)) {
+                Footnote(l10n(L10n.Licenses.Libraries.note))
+                asset("Apache-2.0")?.let { Disclosure(l10n(L10n.Licenses.apache), it, mono = true) }
+            }
         }
     }
 }

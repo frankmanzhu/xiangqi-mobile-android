@@ -107,8 +107,10 @@ class PikafishEngine(private val context: Context) : ComputerPlayerClient, Rules
         if (handle != 0L) NativePikafish.nativeStop(handle)
     }
 
+    // The rule judge shares Pikafish's global tables with the search, so it takes the same lock:
+    // native calls never overlap, whichever coroutine issues them.
     override suspend fun result(startingFEN: String, moves: List<String>): GameResult? =
-        withContext(Dispatchers.Default) {
+        searchLock.withLock { withContext(Dispatchers.Default) {
             val (outcome, reason) = NativePikafish.nativeRulesResult(startingFEN, moves.toTypedArray()).let { it[0] to it[1] }
             if (outcome == 0) return@withContext null
             val winner = when (outcome) { 2 -> Side.RED; 3 -> Side.BLACK; else -> null }
@@ -118,7 +120,7 @@ class PikafishEngine(private val context: Context) : ComputerPlayerClient, Rules
                 else -> GameResultReason.RULES_ADJUDICATION
             }
             GameResult(winner, resultReason)
-        }
+        } }
 
     companion object {
         const val REVISION = "6a59ee2f7b105bff64d9efc2692591107787e2b1"
