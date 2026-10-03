@@ -6,7 +6,8 @@ Builds app/learning-lite/ccpd.sqlite3, the small fallback committed to git.
 The real app bundle uses the full 205 MB corpus straight from the iOS repo (see
 app/build.gradle.kts, `learningDatabase`). The lite subset only exists so that
 a clone without the iOS checkout - CI, a contributor - still builds and runs:
-every study/puzzle category in full plus a deterministic sample of the games.
+every study/puzzle category in full plus a deterministic, equal-sized sample from each game collection
+(CCPD master, CCPD computer, WXF, Dongping) so every filter in the app has data.
 
     scripts/build_learning_db.py [--source PATH] [--games-per-group N]
 """
@@ -26,7 +27,7 @@ GAME_CATEGORY = "對局"
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", default=DEFAULT_SOURCE)
-    parser.add_argument("--games-per-group", type=int, default=2500)
+    parser.add_argument("--games-per-group", type=int, default=1500, help="games kept from each collection (CCPD master, CCPD computer, WXF, Dongping)")
     args = parser.parse_args()
 
     os.makedirs(os.path.dirname(OUTPUT), exist_ok=True)
@@ -35,13 +36,14 @@ def main():
     work = OUTPUT + ".work"
     shutil.copyfile(args.source, work)
     db = sqlite3.connect(work)
-    # Keep the first N games of each source group, ordered by path so the
-    # sample is identical on every run.
+    # Keep the first N games of each collection (the first two path components, e.g.
+    # 'ICCS/WXF'), ordered by path so the sample is identical on every run.
     db.execute(
         """DELETE FROM records WHERE category = ? AND id NOT IN (
                SELECT id FROM (
                    SELECT id, ROW_NUMBER() OVER (
-                       PARTITION BY substr(source_path, 1, instr(source_path, '/') - 1)
+                       PARTITION BY substr(source_path, 1,
+                           instr(source_path, '/') + instr(substr(source_path, instr(source_path, '/') + 1), '/') - 1)
                        ORDER BY source_path) AS n
                    FROM records WHERE category = ?)
                WHERE n <= ?)""",
