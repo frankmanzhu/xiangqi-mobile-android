@@ -77,6 +77,7 @@ fun NewGameScreen(app: AppModel, mode: GameMode) {
                     Footnote(l10n(L10n.NewGame.redMovesFirst))
                 }
                 SettingsSection(l10n(L10n.NewGame.Section.strength)) {
+                    Text(l10n(L10n.NewGame.level), color = colors.textSecondary, fontSize = 13.sp)
                     Segmented((1..5).toList(), level, { "$it" }) { level = it }
                     Text(l10n(levelName(level)), color = colors.text, fontWeight = FontWeight.SemiBold, fontSize = 17.sp)
                     Footnote(l10n(levelDetail(level)))

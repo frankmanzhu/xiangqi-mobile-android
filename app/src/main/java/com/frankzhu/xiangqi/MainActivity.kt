@@ -17,7 +17,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import com.frankzhu.xiangqi.l10n.L10n
+import com.frankzhu.xiangqi.ui.components.ScreenScaffold
+import com.frankzhu.xiangqi.ui.components.UnavailableBox
 import com.frankzhu.xiangqi.l10n.LocalLocalizer
 import com.frankzhu.xiangqi.l10n.Localizer
 import com.frankzhu.xiangqi.ui.screens.GameScreen
@@ -67,7 +71,13 @@ fun XiangqiRoot(app: AppModel) {
                 is AppRoute.Setup -> NewGameScreen(app, route.mode)
                 AppRoute.Game -> {
                     val session = app.session
-                    if (session != null) GameScreen(app, session) else app.back()
+                    if (session != null) {
+                        GameScreen(app, session)
+                    } else {
+                        ScreenScaffold(localizer(L10n.Game.unavailable), onBack = app::back) {
+                            UnavailableBox(Icons.Filled.Close, localizer(L10n.Game.unavailable), null)
+                        }
+                    }
                 }
                 AppRoute.Settings -> SettingsScreen(app)
                 AppRoute.Learning -> LearningHomeScreen(app)

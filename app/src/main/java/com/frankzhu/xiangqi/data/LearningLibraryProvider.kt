@@ -20,7 +20,8 @@ class LearningLibraryProvider(private val context: Context) {
             val bundled = bundledDatabase()
             val userFile = File(context.filesDir, "XiangqiMobile/user-games.sqlite3")
             SqliteCCPDLibrary.createEmptyUserDatabase(userFile)
-            return LearningLibraryStore(SqliteCCPDLibrary(bundled), SqliteCCPDLibrary(userFile)).also { cached = it }
+            val chinese = ChineseVariants.forContext(context)
+            return LearningLibraryStore(SqliteCCPDLibrary(bundled, chinese), SqliteCCPDLibrary(userFile, chinese)).also { cached = it }
         }
     }
 

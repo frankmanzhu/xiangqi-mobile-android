@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.frankzhu.xiangqimobile"
-        minSdk = 26
+        minSdk = 24
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -34,8 +34,23 @@ android {
         }
     }
 
+    // Release signing comes from the environment so no secret is ever committed:
+    // XIANGQI_KEYSTORE (path), XIANGQI_KEYSTORE_PASSWORD, XIANGQI_KEY_ALIAS, XIANGQI_KEY_PASSWORD.
+    val releaseKeystore = System.getenv("XIANGQI_KEYSTORE")
+    if (releaseKeystore != null) {
+        signingConfigs {
+            create("release") {
+                storeFile = file(releaseKeystore)
+                storePassword = System.getenv("XIANGQI_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("XIANGQI_KEY_ALIAS")
+                keyPassword = System.getenv("XIANGQI_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (releaseKeystore != null) signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -45,6 +60,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // java.time (used by the shared core module) needs desugaring below API 26.
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlin { jvmToolchain(17) }
 
@@ -63,6 +80,7 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(project(":core"))
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
@@ -82,10 +100,12 @@ dependencies {
     debugImplementation(libs.compose.ui.test.manifest)
 
     testImplementation(libs.junit)
+    testImplementation(kotlin("test"))
     testImplementation(libs.kotlinx.coroutines.test)
 
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.core)
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.compose.ui.test.junit4)
     androidTestImplementation(libs.kotlinx.coroutines.test)

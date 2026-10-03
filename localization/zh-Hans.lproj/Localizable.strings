@@ -182,7 +182,7 @@
 
 "home.mode.learn.title" = "学习与练习";
 
-"home.mode.twoPlayer.subtitle" = "共用这台 iPhone";
+"home.mode.twoPlayer.subtitle" = "共用这台设备";
 
 "home.section.mode" = "选择模式";
 
@@ -524,11 +524,11 @@
 
 "privacy.section.retention" = "保留与删除";
 
-"privacy.retention" = "本地数据会保留，直到被替换或您在 iOS 设置中选择“删除 App”。“卸载 App”会保留数据。备份和已分享的副本须在相应服务中单独管理。开发者不保存您的棋局或设置的服务器副本。";
+"privacy.retention" = "本地数据会保留，直到被替换或您在 Android 设置中卸载应用或清除其存储空间。备份和已分享的副本须在相应服务中单独管理。开发者不保存您的棋局或设置的服务器副本。";
 
 "privacy.section.contact" = "联系";
 
-"privacy.contact" = "如有隐私问题，请通过链接的 GitHub 问题跟踪页面联系 Frank Zhu。Apple 可能根据其隐私设置和政策处理 App Store、设备备份及崩溃信息。";
+"privacy.contact" = "如有隐私问题，请通过链接的 GitHub 问题跟踪页面联系 Frank Zhu。Google 可能根据其隐私设置和政策处理 Play 商店、设备备份及崩溃信息。";
 
 "reason.rulesAdjudication" = "规则裁定";
 

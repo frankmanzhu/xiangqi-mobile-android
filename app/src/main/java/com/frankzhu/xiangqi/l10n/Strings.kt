@@ -173,7 +173,7 @@ object L10n {
             }
 
             object TwoPlayer {
-                val subtitle = LocalizedKey("home.mode.twoPlayer.subtitle", "Share this iPhone")
+                val subtitle = LocalizedKey("home.mode.twoPlayer.subtitle", "Share this device")
             }
         }
 
@@ -327,8 +327,8 @@ object L10n {
     }
 
     object Privacy {
-        val contact = LocalizedKey("privacy.contact", "For privacy questions, contact Frank Zhu through the linked GitHub issue tracker. Apple may process App Store, device-backup, and crash information under its own privacy settings and policies.")
-        val retention = LocalizedKey("privacy.retention", "Local data remains until it is replaced or you delete the app using Delete App in iOS Settings. Offloading the app preserves its data. Backups and copies you have shared must be managed separately with their respective services. The developer holds no server copy of your games or settings.")
+        val contact = LocalizedKey("privacy.contact", "For privacy questions, contact Frank Zhu through the linked GitHub issue tracker. Google may process Play Store, device-backup, and crash information under its own privacy settings and policies.")
+        val retention = LocalizedKey("privacy.retention", "Local data remains until it is replaced or you uninstall the app or clear its storage in Android Settings. Backups and copies you have shared must be managed separately with their respective services. The developer holds no server copy of your games or settings.")
         object Section {
             val contact = LocalizedKey("privacy.section.contact", "Contact")
             val retention = LocalizedKey("privacy.section.retention", "Retention and deletion")

@@ -2,7 +2,6 @@ package com.frankzhu.xiangqi.data
 
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
-import android.icu.text.Transliterator
 import com.frankzhu.xiangqi.core.CCPDCategorySummary
 import com.frankzhu.xiangqi.core.CCPDLibrary
 import com.frankzhu.xiangqi.core.CCPDLibraryException
@@ -12,7 +11,10 @@ import com.frankzhu.xiangqi.core.decodeCCPDRecord
 import java.io.File
 
 /** A read-only view of one CCPD SQLite corpus, using the same schema as the iOS app. */
-class SqliteCCPDLibrary(private val databaseFile: File) : CCPDLibrary {
+class SqliteCCPDLibrary(
+    private val databaseFile: File,
+    private val chinese: ChineseVariants = ChineseVariants.None
+) : CCPDLibrary {
 
     override fun validate() {
         val version = metadata()["schema_version"]
@@ -50,7 +52,7 @@ class SqliteCCPDLibrary(private val databaseFile: File) : CCPDLibrary {
         val trimmed = query?.trim().orEmpty()
         if (trimmed.isNotEmpty()) {
             val columns = listOf("event", "red", "black", "ecco", "date_text", "result", "source_path")
-            val variants = chineseSearchVariants(trimmed)
+            val variants = chinese.variants(trimmed)
             val clause = columns.joinToString(" OR ", "(", ")") { "$it LIKE ? ESCAPE '\\'" }
             predicates += variants.joinToString(" OR ", "(", ")") { clause }
             for (variant in variants) repeat(columns.size) { bindings += "%${escapedLike(variant)}%" }
@@ -120,16 +122,6 @@ class SqliteCCPDLibrary(private val databaseFile: File) : CCPDLibrary {
 
     private fun escapedLike(value: String) =
         value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-
-    /** Searches match either script: a Simplified query also finds Traditional records. */
-    private fun chineseSearchVariants(value: String): List<String> {
-        val result = mutableListOf(value)
-        for (id in listOf("Hans-Hant", "Hant-Hans")) {
-            val converted = runCatching { Transliterator.getInstance(id).transliterate(value) }.getOrNull()
-            if (converted != null && converted !in result) result += converted
-        }
-        return result
-    }
 
     companion object {
         /** Creates the writable database used for user-imported games, if absent. */

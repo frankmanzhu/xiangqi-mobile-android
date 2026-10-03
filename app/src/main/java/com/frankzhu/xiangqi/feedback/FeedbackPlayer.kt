@@ -3,7 +3,6 @@ package com.frankzhu.xiangqi.feedback
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFormat
-import android.media.AudioManager
 import android.media.AudioTrack
 import android.os.Build
 import android.os.VibrationEffect
@@ -64,13 +63,16 @@ class FeedbackPlayer(context: Context, private val preferences: AppPreferences) 
                     FeedbackEvent.INVALID_ATTEMPT -> VibrationEffect.EFFECT_HEAVY_CLICK
                 }
                 vibrator.vibrate(VibrationEffect.createPredefined(effect))
-            } else {
+            } else if (Build.VERSION.SDK_INT >= 26) {
                 val ms = when (event) {
                     FeedbackEvent.PIECE_SELECTED -> 8L
                     FeedbackEvent.MOVE -> 15L
                     else -> 30L
                 }
                 vibrator.vibrate(VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE))
+            } else {
+                @Suppress("DEPRECATION")
+                vibrator.vibrate(if (event == FeedbackEvent.PIECE_SELECTED) 8L else 20L)
             }
         }
     }
@@ -96,7 +98,6 @@ class FeedbackPlayer(context: Context, private val preferences: AppPreferences) 
                 )
                 .setTransferMode(AudioTrack.MODE_STATIC)
                 .setBufferSizeInBytes(pcm.size * 2)
-                .setSessionId(AudioManager.AUDIO_SESSION_ID_GENERATE)
                 .build()
                 .also { it.write(pcm, 0, pcm.size) }
         }.getOrNull() ?: return null
