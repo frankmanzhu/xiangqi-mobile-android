@@ -2,6 +2,7 @@ package com.frankzhu.xiangqi.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -69,7 +70,8 @@ fun NewGameScreen(app: AppModel, mode: GameMode) {
     }
 
     ScreenScaffold(l10n(L10n.NewGame.title), onBack = app::back) {
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 24.dp)) {
+        Column(Modifier.fillMaxSize()) {
+          Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())) {
             SettingsSection(null) { LabeledRow(l10n(L10n.NewGame.mode), l10n(mode.titleKey)) }
             if (mode == GameMode.COMPUTER) {
                 SettingsSection(l10n(L10n.NewGame.Section.side)) {
@@ -89,11 +91,13 @@ fun NewGameScreen(app: AppModel, mode: GameMode) {
             SettingsSection(l10n(L10n.NewGame.Section.theme)) {
                 ThemeChoiceStrip(prefs.themeId.rawValue, { prefs.updateTheme(ThemeID(it)) }, Modifier.padding(vertical = 6.dp))
             }
-            Button(
-                onClick = { if (app.resumableRecord != null) confirmReplacement = true else start() },
-                colors = ButtonDefaults.buttonColors(containerColor = colors.accent, contentColor = colors.onAccent),
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)
-            ) { Text(l10n(L10n.NewGame.start), fontWeight = FontWeight.SemiBold, fontSize = 17.sp, modifier = Modifier.padding(vertical = 6.dp)) }
+          }
+          // Pinned below the scrolling form so it is reachable on short screens.
+          Button(
+              onClick = { if (app.resumableRecord != null) confirmReplacement = true else start() },
+              colors = ButtonDefaults.buttonColors(containerColor = colors.accent, contentColor = colors.onAccent),
+              modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)
+          ) { Text(l10n(L10n.NewGame.start), fontWeight = FontWeight.SemiBold, fontSize = 17.sp, modifier = Modifier.padding(vertical = 6.dp)) }
         }
     }
 
