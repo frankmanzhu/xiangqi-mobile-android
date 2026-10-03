@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Build the learning database bundled with the Android app.
 
-The iOS app ships the full 205 MB CCPD corpus, which is too large for a git
-repository (GitHub rejects files over 100 MB). The Android app commits a "lite"
-subset instead: every study/puzzle category in full, plus a deterministic sample
-of the game collections. Use --full to bundle the whole corpus into a local build.
+Builds app/learning-lite/ccpd.sqlite3, the small fallback committed to git.
 
-    scripts/build_learning_db.py [--source PATH] [--games-per-group N] [--full]
+The real app bundle uses the full 205 MB corpus straight from the iOS repo (see
+app/build.gradle.kts, `learningDatabase`). The lite subset only exists so that
+a clone without the iOS checkout - CI, a contributor - still builds and runs:
+every study/puzzle category in full plus a deterministic sample of the games.
+
+    scripts/build_learning_db.py [--source PATH] [--games-per-group N]
 """
 
 import argparse
@@ -17,7 +19,7 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_SOURCE = os.path.join(ROOT, "..", "xiangqi-mobile", "Resources", "Learning", "ccpd.sqlite3")
-OUTPUT = os.path.join(ROOT, "app", "src", "main", "assets", "learning", "ccpd.sqlite3")
+OUTPUT = os.path.join(ROOT, "app", "learning-lite", "ccpd.sqlite3")
 GAME_CATEGORY = "對局"
 
 
@@ -25,17 +27,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", default=DEFAULT_SOURCE)
     parser.add_argument("--games-per-group", type=int, default=2500)
-    parser.add_argument("--full", action="store_true", help="copy the whole corpus (do not commit)")
     args = parser.parse_args()
 
     os.makedirs(os.path.dirname(OUTPUT), exist_ok=True)
     if os.path.exists(OUTPUT):
         os.remove(OUTPUT)
-    if args.full:
-        shutil.copyfile(args.source, OUTPUT)
-        print(f"copied full corpus -> {OUTPUT}")
-        return 0
-
     work = OUTPUT + ".work"
     shutil.copyfile(args.source, work)
     db = sqlite3.connect(work)

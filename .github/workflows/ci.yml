@@ -25,6 +25,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Install NDK and CMake
         run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;$NDK_VERSION" "cmake;3.22.1" >/dev/null
+      # CI has no iOS checkout, so it bundles the small committed learning database on purpose.
       - name: Localization catalogs are in sync
         run: python3 scripts/l10n.py check
       - name: Unit tests (core + app)
@@ -32,7 +33,7 @@ jobs:
       - name: Lint
         run: ./gradlew :app:lintDebug
       - name: Assemble debug and release
-        run: ./gradlew :app:assembleDebug :app:assembleRelease
+        run: ./gradlew :app:assembleDebug :app:assembleRelease -Pxiangqi.allowLiteLearningDb=true
       - uses: actions/upload-artifact@v4
         if: always()
         with:

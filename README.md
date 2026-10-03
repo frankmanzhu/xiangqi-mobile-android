@@ -1,6 +1,6 @@
 # Xiangqi Mobile for Android
 
-A native, offline Android app for playing xiangqi (Chinese chess): Player vs Computer, two-player hot-seat, full move replay, atomic save/resume, clocks, undo, hints, three board themes, a learning library of 140,000+ recorded games and puzzles, and portable game sharing.
+A native, offline Android app for playing xiangqi (Chinese chess): Player vs Computer, two-player hot-seat, full move replay, atomic save/resume, clocks, undo, hints, three board themes, a learning library of 145,000+ recorded games and puzzles, and portable game sharing.
 
 This is the Android sibling of the iOS app, [frankmanzhu/xiangqi-mobile](https://github.com/frankmanzhu/xiangqi-mobile). The two share the same game record, rules engine revision, localization files and learning data, so a game saved or shared on one platform opens on the other.
 
@@ -46,8 +46,9 @@ export XIANGQI_KEYSTORE=/path/to/keystore.jks XIANGQI_KEYSTORE_PASSWORD=… XIAN
 | `core/` | Pure-Kotlin (JVM) game logic: rules, FEN/UCI, Chinese-notation PGN parser, game session, puzzle session, learning progress, sound synthesis. No Android dependencies, so it is fast to test. Port of iOS `XiangqiMobile/Core` + `GameSession`. |
 | `app/` | Android app: Compose UI, themes, localization runtime, SQLite learning library, audio/haptics, JNI engine client. |
 | `app/src/main/cpp/` | Pikafish sources, the shared `PikafishBridge`, and the JNI shim, built by CMake. |
-| `app/src/main/assets/` | Pikafish network, learning database, localization catalogs, licences. |
+| `app/src/main/assets/` | Pikafish network, localization catalogs, licences (the learning database is added at build time). |
 | `localization/` | `.strings` files — the same format and keys as the iOS app. |
+| `app/learning-lite/` | The small fallback learning database (see below). |
 | `scripts/` | `l10n.py` (catalog generator and checker), `build_learning_db.py`. |
 | `docs/` | Porting notes and parity matrix. |
 
@@ -57,13 +58,18 @@ export XIANGQI_KEYSTORE=/path/to/keystore.jks XIANGQI_KEYSTORE_PASSWORD=… XIAN
 
 ## Learning database
 
-The iOS app bundles the full 205 MB CCPD corpus. GitHub rejects files over 100 MB, so this repository commits a deterministic **lite** build (about 12 MB: every study and puzzle category in full, plus 2,500 games from each game collection). To bundle the complete corpus into a local build:
+The app bundles the **full 205 MB CCPD corpus (145,065 records)**, linked straight from the iOS repo rather than copied: the Gradle build picks up `../xiangqi-mobile/Resources/Learning/ccpd.sqlite3`, so check the two repos out side by side and run `git lfs pull` in the iOS one (the database lives in Git LFS there). Both apps then always ship the same data.
 
-```bash
-python3 scripts/build_learning_db.py --full   # copies ../xiangqi-mobile/Resources/Learning/ccpd.sqlite3
-```
+| Situation | What gets bundled |
+|---|---|
+| iOS repo checked out next to this one (default) | Full corpus |
+| `-Pxiangqi.learningDb=/path/ccpd.sqlite3` or `XIANGQI_LEARNING_DB` | Full corpus from that file |
+| No iOS checkout (CI, a fresh clone) | A small committed subset (`app/learning-lite`, ~12 MB) so the project still builds and runs |
+| `-Pxiangqi.liteLearningDb=true` | The subset, for faster debug installs |
 
-Do not commit the result. Rebuild the lite database with `python3 scripts/build_learning_db.py`.
+Release builds (`assembleRelease`, `bundleRelease`) **refuse to use the subset** unless you pass `-Pxiangqi.allowLiteLearningDb=true`, so a release can never silently ship the cut-down library. A Git LFS pointer file is detected and rejected too. The first time Learn is opened the app copies the database out of the APK once (a few seconds); the APK stays under Play's size limit because the database compresses in the APK.
+
+The subset is rebuilt with `python3 scripts/build_learning_db.py` (GitHub rejects files over 100 MB, which is why the full file is not committed here).
 
 ## Licences
 

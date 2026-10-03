@@ -67,9 +67,9 @@ android {
 
     buildFeatures { compose = true }
 
-    // The network and the learning database are opened as raw files; compressing
-    // them in the APK would only slow the first-run copy.
-    androidResources { noCompress += listOf("nnue", "sqlite3") }
+    // The network is opened as a raw file. The learning database is copied out once on first
+    // use, so APK compression is fine and keeps the download under Play's size limit.
+    androidResources { noCompress += listOf("nnue") }
 
     packaging {
         jniLibs { useLegacyPackaging = false }
@@ -77,6 +77,54 @@ android {
     }
 
     testOptions { unitTests.isReturnDefaultValues = true }
+}
+
+
+// --- Learning database ------------------------------------------------------------------------
+// The shipped corpus is the iOS repo's Resources/Learning/ccpd.sqlite3 (205 MB, kept in Git LFS
+// there), linked rather than copied. Override the location with -Pxiangqi.learningDb=PATH or the
+// XIANGQI_LEARNING_DB environment variable. Without it, builds fall back to the small committed
+// subset in app/learning-lite - fine for CI and development, refused for release builds unless
+// -Pxiangqi.allowLiteLearningDb=true is passed on purpose.
+val learningDatabase: File? = (
+    (findProperty("xiangqi.learningDb") as String?) ?: System.getenv("XIANGQI_LEARNING_DB")
+        ?: rootProject.file("../xiangqi-mobile/Resources/Learning/ccpd.sqlite3").path
+).let { file(it) }.takeIf { it.isFile }
+val liteLearningDatabase = file("learning-lite/ccpd.sqlite3")
+val forceLite = (findProperty("xiangqi.liteLearningDb") as String?) == "true"
+val allowLite = (findProperty("xiangqi.allowLiteLearningDb") as String?) == "true"
+val generatedLearningAssets = layout.buildDirectory.dir("generated/learningAssets")
+
+val prepareLearningDatabase by tasks.registering {
+    val source = if (forceLite || learningDatabase == null) liteLearningDatabase else learningDatabase
+    val usingLite = source == liteLearningDatabase
+    inputs.file(source)
+    inputs.property("lite", usingLite)
+    val target = generatedLearningAssets.map { it.file("learning/ccpd.sqlite3") }
+    outputs.file(target)
+    doLast {
+        // A Git LFS pointer is a ~130-byte text file; bundling one would ship a broken library.
+        require(source.length() > 1_000_000) {
+            "${source.path} is ${source.length()} bytes - probably a Git LFS pointer. Run `git lfs pull` in the iOS repo."
+        }
+        source.copyTo(target.get().asFile.also { it.parentFile.mkdirs() }, overwrite = true)
+        logger.lifecycle("Learning database: ${if (usingLite) "LITE subset" else "full corpus"} (${source.length() / 1_000_000} MB) from ${source.path}")
+    }
+}
+
+val releaseRequested = gradle.startParameter.taskNames.any { it.contains("Release", ignoreCase = true) || it.contains("bundle", ignoreCase = true) }
+if (releaseRequested && (forceLite || learningDatabase == null) && !allowLite) {
+    throw GradleException(
+        "Release builds must bundle the full learning corpus. Check out the iOS repo next to this one " +
+            "(../xiangqi-mobile, with `git lfs pull`), or pass -Pxiangqi.learningDb=PATH. " +
+            "Pass -Pxiangqi.allowLiteLearningDb=true to ship the small subset deliberately."
+    )
+}
+
+android.sourceSets.getByName("main").assets.srcDir(generatedLearningAssets)
+tasks.configureEach {
+    if (name.startsWith("merge") && name.endsWith("Assets")) dependsOn(prepareLearningDatabase)
+    if (name.contains("lint", ignoreCase = true) || name.startsWith("generate") && name.endsWith("LintModel")) mustRunAfter(prepareLearningDatabase)
 }
 
 dependencies {

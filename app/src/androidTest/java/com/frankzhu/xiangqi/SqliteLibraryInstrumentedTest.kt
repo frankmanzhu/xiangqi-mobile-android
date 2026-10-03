@@ -96,7 +96,8 @@ class SqliteLibraryInstrumentedTest {
         val store = LearningLibraryProvider(context).load()
         val metadata = store.metadata()
         assertEquals("368a47a947773dd8692c026e286dd19b6277b993", metadata["source_revision"])
-        assertTrue(store.categories().sumOf { it.recordCount } > 5_000)
+        // Lite subset ~9.5k records; the full corpus (linked from the iOS repo) is 145,065.
+        assertTrue(store.categories().sumOf { it.recordCount } >= 9_000)
         assertFalse(store.records(query = "刘").isEmpty())
 
         val summary = store.records(category = "殺局_殺法_練習題", limit = 1).first()
