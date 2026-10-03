@@ -26,4 +26,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "xiangqi-mobile-android"
-include(":core")
+include(":core", ":app")

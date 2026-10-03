@@ -15,5 +15,5 @@ interface ComputerPlayerClient {
 
 /** Adjudicates a game from its full history (Pikafish computer rules). */
 interface RulesAdjudicator {
-    fun result(startingFEN: String, moves: List<String>): GameResult?
+    suspend fun result(startingFEN: String, moves: List<String>): GameResult?
 }

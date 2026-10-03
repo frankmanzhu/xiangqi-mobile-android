@@ -333,6 +333,8 @@ class GameSession(
                 updated = updated.copy(result = result)
                 _state.update { it.copy(record = updated, showResult = true) }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             failure = e
         }
