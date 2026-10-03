@@ -116,16 +116,13 @@ fun GameScreen(app: AppModel, session: GameSession) {
         val colors = theme.colors
         val l10n = LocalLocalizer.current
         BoxWithConstraints(Modifier.fillMaxSize().background(colors.background)) {
-            val boardHeightCap = maxHeight
             val landscape = maxWidth > maxHeight
             Box(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(), contentAlignment = Alignment.TopCenter) {
                 Column(Modifier.fillMaxSize()) {
                     GameTopBar(state, onLeave = { app.leaveGame() }, onMenu = { showMenu = true })
                     if (landscape) {
                         Row(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) {
-                                BoardArea(app, session, state, Modifier.fillMaxHeight().widthIn(max = boardHeightCap * 0.8f))
-                            }
+                            FitBoard(Modifier.weight(1f).fillMaxHeight()) { BoardArea(app, session, state, it) }
                             Column(Modifier.width(300.dp).fillMaxHeight().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                                 PlayerRail(state, state.record.orientation.opponent, isOpponent = true)
                                 StatusLine(state)
@@ -141,9 +138,7 @@ fun GameScreen(app: AppModel, session: GameSession) {
                         ) {
                             PlayerRail(state, state.record.orientation.opponent, isOpponent = true)
                             StatusLine(state)
-                            Box(Modifier.weight(1f, fill = false).padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
-                                BoardArea(app, session, state, Modifier)
-                            }
+                            FitBoard(Modifier.weight(1f).padding(horizontal = 8.dp)) { BoardArea(app, session, state, it) }
                             PlayerRail(state, state.record.orientation, isOpponent = false)
                             BottomControls(session, state) { showHistory = true }
                         }
@@ -158,6 +153,17 @@ fun GameScreen(app: AppModel, session: GameSession) {
         if (state.showResult) ResultSheet(app, session, state, onReview = { session.dismissResult(); showHistory = true })
     }
 }
+
+/** Sizes the board to the largest 0.87-aspect rectangle that fits, so it never overflows in either orientation. */
+@Composable
+private fun FitBoard(modifier: Modifier, content: @Composable (Modifier) -> Unit) {
+    BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
+        val width = minOf(maxWidth, maxHeight * BOARD_ASPECT)
+        content(Modifier.width(width))
+    }
+}
+
+private const val BOARD_ASPECT = 0.87f
 
 @Composable
 private fun GameTopBar(state: GameState, onLeave: () -> Unit, onMenu: () -> Unit) {
