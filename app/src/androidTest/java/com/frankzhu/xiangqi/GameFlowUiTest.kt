@@ -26,6 +26,12 @@ class GameFlowUiTest {
     @Before
     fun resetSavedGame() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
+        // Pin the settings the assertions depend on, whatever a previous run left behind.
+        (context.applicationContext as XiangqiApp).container.preferences.apply {
+            updateLanguage(com.frankzhu.xiangqi.l10n.AppLanguage.ENGLISH)
+            updateTheme(com.frankzhu.xiangqi.core.ThemeID.CLASSIC)
+            updateConfirmMoves(false)
+        }
         // Wipe the saved game *before* the activity loads it, or a replace-game dialog appears.
         File(context.filesDir, "XiangqiMobile/active-game.json").delete()
         scenario = ActivityScenario.launch(MainActivity::class.java)
