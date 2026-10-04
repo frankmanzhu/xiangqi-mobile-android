@@ -94,18 +94,28 @@ def check_apk(path, allow_lite):
             check(f"assets/licenses/{notice}.txt" in names, f"licence notice bundled: {notice}")
         for lang in ["en", "zh-Hans", "zh-Hant"]:
             check(f"assets/l10n/{lang}.json" in names, f"localization catalog bundled: {lang}")
-        for manifest in ["CCPD-source.json", "CCPD-merged-sources.json"]:
-            check(f"assets/learning/{manifest}" in names, f"learning source manifest bundled: {manifest}")
-        db = [i for i in apk.infolist() if i.filename == "assets/learning/ccpd.sqlite3"]
-        check(bool(db), "learning database is bundled")
-        if db:
-            size_mb = db[0].file_size / 1e6
-            if size_mb < 100:
-                (notes if allow_lite else failures).append(
-                    ("note " if allow_lite else "FAIL ") + f"learning database is the {size_mb:.0f} MB subset, not the full corpus"
-                )
+        check("assets/learning/CCPD-source.json" in names, "CCPD source manifest (attribution, revision) bundled")
+        check("assets/learning/CCPD-merged-sources.json" not in names, "no manifest for the extra ICCS collections is bundled")
+        check("assets/learning/ccpd.sqlite3" in names, "learning database is bundled")
+        if "assets/learning/ccpd.sqlite3" in names:
+            import sqlite3, tempfile
+            with tempfile.TemporaryDirectory() as tmp:
+                apk.extract("assets/learning/ccpd.sqlite3", tmp)
+                db = sqlite3.connect(os.path.join(tmp, "assets/learning/ccpd.sqlite3"))
+                records = db.execute("SELECT COUNT(*) FROM records").fetchone()[0]
+                extra = db.execute("SELECT COUNT(*) FROM records WHERE source_path LIKE 'ICCS/%'").fetchone()[0]
+                meta = dict(db.execute("SELECT key, value FROM metadata").fetchall())
+                quick = db.execute("PRAGMA quick_check").fetchone()[0]
+                db.close()
+            check(quick == "ok", "learning database passes SQLite quick_check")
+            check(extra == 0, "learning database holds CCPD records only (no ICCS collections)")
+            check(meta.get("license") == "CC BY 4.0", f"learning database licence: {meta.get('license')}")
+            if records == 58456:
+                check(True, "full CCPD corpus bundled (58,456 records)")
             else:
-                check(True, f"full learning corpus bundled ({size_mb:.0f} MB)")
+                (notes if allow_lite else failures).append(
+                    ("note " if allow_lite else "FAIL ") + f"learning database has {records} records (the small subset), not the full 58,456"
+                )
         libs = [n for n in names if n.endswith("libpikafish_jni.so")]
         check(sorted(libs) == ["lib/arm64-v8a/libpikafish_jni.so", "lib/x86_64/libpikafish_jni.so"], f"engine library present for both ABIs: {libs}")
 

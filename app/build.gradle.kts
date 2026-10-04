@@ -81,15 +81,16 @@ android {
 
 
 // --- Learning database ------------------------------------------------------------------------
-// The shipped corpus is the iOS repo's Resources/Learning/ccpd.sqlite3 (205 MB, kept in Git LFS
-// there), linked rather than copied. Override the location with -Pxiangqi.learningDb=PATH or the
-// XIANGQI_LEARNING_DB environment variable. Without it, builds fall back to the small committed
-// subset in app/learning-lite - fine for CI and development, refused for release builds unless
+// The shipped corpus is the CC BY 4.0 Chinese Chess Practical Dataset (58,456 records, ~90 MB),
+// stored in this repository with Git LFS at app/learning/ccpd.sqlite3. Override the location with
+// -Pxiangqi.learningDb=PATH or the XIANGQI_LEARNING_DB environment variable. If the LFS file has not
+// been pulled (a Git LFS pointer is only ~130 bytes), builds fall back to the small subset in
+// app/learning-lite - fine for CI and development, refused for release builds unless
 // -Pxiangqi.allowLiteLearningDb=true is passed on purpose.
 val learningDatabase: File? = (
     (findProperty("xiangqi.learningDb") as String?) ?: System.getenv("XIANGQI_LEARNING_DB")
-        ?: rootProject.file("../xiangqi-mobile/Resources/Learning/ccpd.sqlite3").path
-).let { file(it) }.takeIf { it.isFile }
+        ?: "learning/ccpd.sqlite3"
+).let { file(it) }.takeIf { it.isFile && it.length() > 1_000_000 }
 val liteLearningDatabase = file("learning-lite/ccpd.sqlite3")
 val forceLite = (findProperty("xiangqi.liteLearningDb") as String?) == "true"
 val allowLite = (findProperty("xiangqi.allowLiteLearningDb") as String?) == "true"
@@ -103,20 +104,17 @@ val prepareLearningDatabase by tasks.registering {
     val target = generatedLearningAssets.map { it.file("learning/ccpd.sqlite3") }
     outputs.file(target)
     doLast {
-        // A Git LFS pointer is a ~130-byte text file; bundling one would ship a broken library.
-        require(source.length() > 1_000_000) {
-            "${source.path} is ${source.length()} bytes - probably a Git LFS pointer. Run `git lfs pull` in the iOS repo."
-        }
+        require(source.length() > 1_000_000) { "${source.path} is ${source.length()} bytes - not a database." }
         source.copyTo(target.get().asFile.also { it.parentFile.mkdirs() }, overwrite = true)
-        logger.lifecycle("Learning database: ${if (usingLite) "LITE subset" else "full corpus"} (${source.length() / 1_000_000} MB) from ${source.path}")
+        logger.lifecycle("Learning database: ${if (usingLite) "LITE subset" else "full CCPD corpus"} (${source.length() / 1_000_000} MB) from ${source.path}")
     }
 }
 
 val releaseRequested = gradle.startParameter.taskNames.any { it.contains("Release", ignoreCase = true) || it.contains("bundle", ignoreCase = true) }
 if (releaseRequested && (forceLite || learningDatabase == null) && !allowLite) {
     throw GradleException(
-        "Release builds must bundle the full learning corpus. Check out the iOS repo next to this one " +
-            "(../xiangqi-mobile, with `git lfs pull`), or pass -Pxiangqi.learningDb=PATH. " +
+        "Release builds must bundle the full CCPD corpus, but app/learning/ccpd.sqlite3 is missing or is a Git LFS " +
+            "pointer. Run `git lfs install && git lfs pull`, or pass -Pxiangqi.learningDb=PATH. " +
             "Pass -Pxiangqi.allowLiteLearningDb=true to ship the small subset deliberately."
     )
 }

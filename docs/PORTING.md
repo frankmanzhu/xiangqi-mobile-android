@@ -23,7 +23,7 @@ How each part of [xiangqi-mobile](https://github.com/frankmanzhu/xiangqi-mobile)
 
 ## Intentional differences
 
-- **Learning database.** Both apps ship the same full 205 MB corpus. Android links it from the iOS repo at build time (the file is in Git LFS there; GitHub's 100 MB limit rules out committing it here). A 12 MB subset is committed only as a fallback for checkouts without the iOS repo, and release builds refuse it unless explicitly allowed.
+- **Learning database.** iOS ships the larger merged database (145,065 records: CCPD plus added ICCS game collections). Android ships only the 58,456 CC BY 4.0 CCPD records, stored in this repository with Git LFS, so its data licensing is fully documented. The two apps therefore have the same study and puzzle content and the same CCPD games, but Android has fewer additional games. A small subset is committed as an ordinary file only as a fallback for CI and quick clones, and release builds refuse it unless explicitly allowed.
 - **Traditional/Simplified search.** iOS uses `CFStringTransform`. Android uses ICU `Transliterator` on API 29+ and, on older releases, a per-character table dumped from the same ICU data (`assets/learning/chinese-variants.tsv`, produced by `GenerateChineseTableTest`). The fallback is character-level, so it does not do ICU's phrase-level conversions.
 - **minSdk 24.** `java.time` is desugared; vibration APIs are guarded by level.
 - **64-bit only.** Pikafish needs 64-bit; 32-bit ARM phones are not supported.

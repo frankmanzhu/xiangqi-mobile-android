@@ -1,21 +1,19 @@
 #!/usr/bin/env python3
-"""Build the learning database bundled with the Android app.
+"""Build the learning databases used by the Android app.
 
-Builds app/learning-lite/ccpd.sqlite3, the small fallback committed to git.
+The app bundles the CC BY 4.0 Chinese Chess Practical Dataset (CCPD): 58,456 validated
+records, stored in this repository with Git LFS at app/learning/ccpd.sqlite3. That file was
+produced once from the iOS app's merged database by dropping everything outside CCPD:
 
-The real app bundle uses the full 205 MB corpus straight from the iOS repo (see
-app/build.gradle.kts, `learningDatabase`). The lite subset only exists so that
-a clone without the iOS checkout - CI, a contributor - still builds and runs:
-every study/puzzle category in full plus a deterministic, equal-sized sample from each game collection
-(CCPD master, CCPD computer, WXF, Dongping) so every filter in the app has data.
+    scripts/build_learning_db.py --ccpd-only --output app/learning/ccpd.sqlite3
+
+(the default source is then the iOS repository's ../xiangqi-mobile/Resources/Learning/ccpd.sqlite3).
+
+Without arguments this builds app/learning-lite/ccpd.sqlite3 instead: a small, deterministic
+subset (every study/puzzle category in full, plus a capped number of games from each CCPD game
+collection) committed as an ordinary file. CI uses it so it never has to download the LFS file.
 
     scripts/build_learning_db.py [--source PATH] [--games-per-group N]
-
-To ship only the CC BY 4.0 CCPD records (58,456 - the original corpus, without the added
-ICCS collections), write a filtered copy and point the build at it:
-
-    scripts/build_learning_db.py --ccpd-only --output /tmp/ccpd-only.sqlite3
-    ./gradlew :app:bundleRelease -Pxiangqi.learningDb=/tmp/ccpd-only.sqlite3
 """
 
 import argparse
@@ -25,7 +23,9 @@ import sqlite3
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT_SOURCE = os.path.join(ROOT, "..", "xiangqi-mobile", "Resources", "Learning", "ccpd.sqlite3")
+IOS_SOURCE = os.path.join(ROOT, "..", "xiangqi-mobile", "Resources", "Learning", "ccpd.sqlite3")
+FULL = os.path.join(ROOT, "app", "learning", "ccpd.sqlite3")
+DEFAULT_SOURCE = FULL if os.path.exists(FULL) and os.path.getsize(FULL) > 1_000_000 else IOS_SOURCE
 OUTPUT = os.path.join(ROOT, "app", "learning-lite", "ccpd.sqlite3")
 GAME_CATEGORY = "對局"
 
@@ -33,9 +33,9 @@ GAME_CATEGORY = "對局"
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", default=DEFAULT_SOURCE)
-    parser.add_argument("--games-per-group", type=int, default=1500, help="games kept from each collection (CCPD master, CCPD computer, WXF, Dongping)")
+    parser.add_argument("--games-per-group", type=int, default=3000, help="games kept from each CCPD game collection")
     parser.add_argument("--ccpd-only", action="store_true",
-                        help="keep only the CC BY 4.0 CCPD records (drops the ICCS/WXF and ICCS/Dongping collections)")
+                        help="keep only the CC BY 4.0 CCPD records (drops the added ICCS collections)")
     parser.add_argument("--output", default=OUTPUT, help="where to write the database")
     args = parser.parse_args()
     output = args.output

@@ -16,7 +16,7 @@ Prepared 4 October 2026 for version 1.0 (versionCode 1), package `com.frankzhu.x
 
 ### Full description (4000 max)
 
-Play Chinese chess wherever you are. Challenge the bundled Pikafish engine, share your device with a friend, or explore a library of more than 145,000 recorded games and practice lines — all offline.
+Play Chinese chess wherever you are. Challenge the bundled Pikafish engine, share your device with a friend, or explore a library of more than 58,000 recorded games and practice lines — all offline.
 
 • Play offline against five computer strengths.
 • Play two-player games on one device.
@@ -34,7 +34,7 @@ Xiangqi Mobile is free software (GPL-3.0-or-later). Source code and licence noti
 
 ### What's new (500 max)
 
-First release for Android: play Pikafish offline, two-player mode, 145,000+ games and puzzles to study, three themes, and English / 简体中文 / 繁體中文.
+First release for Android: play Pikafish offline, two-player mode, 58,000+ games and puzzles to study, three themes, and English / 简体中文 / 繁體中文.
 
 ## Graphic assets (this repository)
 
@@ -60,7 +60,7 @@ The screenshots are raw captures (no device frames or captions) taken with demo-
 
 ## Build and signing
 
-1. Check out this repository and the iOS repository side by side (`../xiangqi-mobile`, with `git lfs pull`) so the full learning corpus is bundled. A release build refuses the small subset unless explicitly allowed.
+1. Clone this repository and run `git lfs install && git lfs pull`, so `app/learning/ccpd.sqlite3` (the CC BY 4.0 learning database, ~90 MB) is the real file and not an LFS pointer. A release build refuses the small CI subset unless explicitly allowed.
 2. Create an **upload key** once and keep it out of the repository:
 
    ```sh
@@ -77,7 +77,7 @@ The screenshots are raw captures (no device frames or captions) taken with demo-
 
 4. Enrol in **Play App Signing** when creating the app, then upload `app/build/outputs/bundle/release/app-release.aab`.
 
-**Size.** The release bundle is about 177 MB, under Play's 200 MB limit for a base module, because the 205 MB learning database compresses well. If the corpus grows past the limit, move `learning/ccpd.sqlite3` into a Play Asset Delivery install-time pack. Allow roughly 450 MB of free storage on the device: the APK, plus the database and network copied out of it on first use.
+**Size.** The release bundle is about 101 MB (APK 99.6 MB), comfortably under Play's 200 MB limit for a base module. Allow roughly 300 MB of free storage on the device: the installed package plus the 90 MB database and 50 MB network copied out of it on first use.
 
 **Devices.** Android 7.0 and newer, 64-bit ARM (`arm64-v8a`) and x86-64 (`x86_64`). The Play Console device catalogue will therefore exclude 32-bit-only phones, which is expected: Pikafish requires a 64-bit build.
 
@@ -89,7 +89,7 @@ The app works fully offline and needs no reviewer account. On the home screen, *
 
 The licence is **GPL-3.0-or-later**, identical to the iOS app (`scripts/check_release.py` verifies the `LICENSE` file and the bundled notices byte-for-byte against the iOS repository). For every distributed version the complete corresponding source is this repository at the matching tag, including the Pikafish sources at the pinned revision, the C++ bridge and JNI layer, build scripts and the bundled network.
 
-The learning database holds 145,065 records: 58,456 CCPD records under CC BY 4.0 plus the public WXF (14,386) and Dongping (72,223) game collections; attribution, source revision and checksums are in `app/src/main/assets/learning/`, as in the iOS app. A build with only the CC BY 4.0 records is one command (README, "Learning database"). Pikafish publishes separate terms for its network weights (https://www.pikafish.com/list.html?lang=zh-CN); the app is free with no ads or purchases.
+The learning database holds 58,456 records, all from the CC BY 4.0 Chinese Chess Practical Dataset; attribution, source revision and modification notices are in `app/src/main/assets/learning/CCPD-source.json` and the in-app Licences screen. Pikafish publishes separate terms for its network weights (https://www.pikafish.com/list.html?lang=zh-CN); the app is free with no ads or purchases.
 
 ## Verification
 

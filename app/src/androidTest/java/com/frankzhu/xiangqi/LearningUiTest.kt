@@ -45,25 +45,24 @@ class LearningUiTest : AppUiTest() {
             rule.onNodeWithText(CCPDCategory.title(category.id, en)).performScrollTo().assertIsDisplayed()
             assertText(t(L10n.Learn.recordCount, "%,d".format(en.locale, category.recordCount)))
         }
-        assertTrue("bundle should contain a real corpus", expected.sumOf { it.recordCount } >= 9_000)
+        assertTrue("bundle should contain a real corpus", expected.sumOf { it.recordCount } >= 5_000)
         rule.onNodeWithText(t(L10n.Learn.Dataset.note)).performScrollTo().assertIsDisplayed()
     }
 
     @Test
-    fun theBundledCorpusIsTheFullDatasetWhenLinkedFromTheIosRepo() {
+    fun theBundledCorpusIsTheCcByCcpdDataset() {
         val total = library.categories().sumOf { it.recordCount }
         val metadata = library.metadata()
+        // Whatever is bundled holds CCPD records only: nothing from the added ICCS collections.
+        assertTrue(library.records(category = "對局", sourcePrefix = "ICCS/", limit = 1).isEmpty())
         if (metadata["bundle"] == "lite") {
-            assertTrue(total in 9_000..12_000)
-        } else if (metadata["bundle"] == "ccpd-only") {
-            // The CC BY 4.0 build: exactly the original CCPD records.
-            assertEquals(58_456, total)
-            assertEquals("CC BY 4.0", metadata["license"])
-            assertTrue(library.records(category = "對局", sourcePrefix = "ICCS/", limit = 1).isEmpty())
+            assertTrue(total in 5_000..12_000) // the CI/dev fallback subset
         } else {
-            assertEquals(145_065, total)
-            assertEquals("145065", metadata["imported_files"])
+            assertEquals(58_456, total)
+            assertEquals("58456", metadata["imported_files"])
+            assertEquals("CC BY 4.0", metadata["license"])
         }
+        assertEquals("368a47a947773dd8692c026e286dd19b6277b993", metadata["source_revision"])
     }
 
     @Test
@@ -94,19 +93,15 @@ class LearningUiTest : AppUiTest() {
 
     @Test
     fun theMatchCollectionFilterNarrowsTheGameList() {
-        org.junit.Assume.assumeTrue(
-            "needs the ICCS collections (absent from the CC BY-only build)",
-            library.records(category = "對局", sourcePrefix = "ICCS/WXF/", limit = 1).isNotEmpty()
-        )
         openLearn()
         openCategory("對局")
         waitForTextContaining(t(L10n.Learn.Subcategory.title), timeoutMs = 30_000)
         rule.onNodeWithText(t(L10n.Learn.Subcategory.title) + ": " + t(L10n.Learn.Subcategory.allMatches)).performClick()
-        click(L10n.Learn.Subcategory.wxfMatches)
-        waitForText(t(L10n.Learn.Subcategory.title) + ": " + t(L10n.Learn.Subcategory.wxfMatches))
-        val wxf = library.records(category = "對局", sourcePrefix = "ICCS/WXF/", limit = 1)
-        assertTrue(wxf.isNotEmpty())
-        val label = wxf.first().event?.trim().takeUnless { it.isNullOrEmpty() } ?: wxf.first().sourcePath
+        click(L10n.Learn.Subcategory.ccpdComputerMatches)
+        waitForText(t(L10n.Learn.Subcategory.title) + ": " + t(L10n.Learn.Subcategory.ccpdComputerMatches))
+        val computer = library.records(category = "對局", sourcePrefix = "對局/電腦對局/", limit = 1)
+        assertTrue(computer.isNotEmpty())
+        val label = computer.first().event?.trim().takeUnless { it.isNullOrEmpty() } ?: computer.first().sourcePath
         rule.waitUntil(30_000) { rule.onAllNodes(hasText(label)).fetchSemanticsNodes().isNotEmpty() }
     }
 
