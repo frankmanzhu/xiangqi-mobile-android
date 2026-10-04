@@ -55,6 +55,11 @@ class LearningUiTest : AppUiTest() {
         val metadata = library.metadata()
         if (metadata["bundle"] == "lite") {
             assertTrue(total in 9_000..12_000)
+        } else if (metadata["bundle"] == "ccpd-only") {
+            // The CC BY 4.0 build: exactly the original CCPD records.
+            assertEquals(58_456, total)
+            assertEquals("CC BY 4.0", metadata["license"])
+            assertTrue(library.records(category = "對局", sourcePrefix = "ICCS/", limit = 1).isEmpty())
         } else {
             assertEquals(145_065, total)
             assertEquals("145065", metadata["imported_files"])
@@ -89,6 +94,10 @@ class LearningUiTest : AppUiTest() {
 
     @Test
     fun theMatchCollectionFilterNarrowsTheGameList() {
+        org.junit.Assume.assumeTrue(
+            "needs the ICCS collections (absent from the CC BY-only build)",
+            library.records(category = "對局", sourcePrefix = "ICCS/WXF/", limit = 1).isNotEmpty()
+        )
         openLearn()
         openCategory("對局")
         waitForTextContaining(t(L10n.Learn.Subcategory.title), timeoutMs = 30_000)
@@ -99,6 +108,25 @@ class LearningUiTest : AppUiTest() {
         assertTrue(wxf.isNotEmpty())
         val label = wxf.first().event?.trim().takeUnless { it.isNullOrEmpty() } ?: wxf.first().sourcePath
         rule.waitUntil(30_000) { rule.onAllNodes(hasText(label)).fetchSemanticsNodes().isNotEmpty() }
+    }
+
+    @Test
+    fun theCollectionMenuOffersOnlyCollectionsThatHaveGames() {
+        openLearn()
+        openCategory("對局")
+        waitForTextContaining(t(L10n.Learn.Subcategory.title), timeoutMs = 30_000)
+        rule.onNodeWithText(t(L10n.Learn.Subcategory.title) + ": " + t(L10n.Learn.Subcategory.allMatches)).performClick()
+        val expected = mapOf(
+            L10n.Learn.Subcategory.ccpdMasterMatches to "對局/大師對局/",
+            L10n.Learn.Subcategory.ccpdComputerMatches to "對局/電腦對局/",
+            L10n.Learn.Subcategory.wxfMatches to "ICCS/WXF/",
+            L10n.Learn.Subcategory.dongpingMatches to "ICCS/Dongping/"
+        )
+        for ((key, prefix) in expected) {
+            val present = library.records(category = "對局", sourcePrefix = prefix, limit = 1).isNotEmpty()
+            val shown = rule.onAllNodes(hasText(t(key))).fetchSemanticsNodes().isNotEmpty()
+            assertEquals("menu entry for $prefix", present, shown)
+        }
     }
 
     @Test

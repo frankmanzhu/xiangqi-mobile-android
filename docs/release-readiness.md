@@ -1,6 +1,6 @@
 # Release readiness — 4 October 2026
 
-Version 1.0 (versionCode 1) is a tested release candidate. It is **not certified ready for Play submission**: a few gates below can only be closed by the owner (enrolment, signing, legal evidence, a physical-device pass). Everything that can be verified from the repository and on emulators has been.
+Version 1.0 (versionCode 1) is a tested release candidate. It is **not certified ready for Play submission**: a few steps below can only be done by the owner (Play Console enrolment, signing, a final manual pass on the phone). Everything that can be verified from the repository and on emulators has been.
 
 ## Completed preparation
 
@@ -18,9 +18,10 @@ Version 1.0 (versionCode 1) is a tested release candidate. It is **not certified
 | `core` unit tests | 48 pass (rules, iOS-compatible record JSON, PGN fixtures, game session incl. the duplicate-search race, puzzles, progress, sound) |
 | `app` unit tests | 7 pass (catalog completeness and placeholder parity, language resolution, preference migration, Chinese variant table) |
 | Lint | 0 errors (`:app:lintDebug`) |
-| Instrumented suite, Android 15 phone (1080×2400) | 62/62 (1 developer tool skipped by design) |
-| Instrumented suite, **Android 7.0 (API 24)** phone (1080×1920) | 62/62 |
-| Instrumented suite, Android 15 10-inch tablet (2560×1600) | 62/62 |
+| Instrumented suite, Android 15 phone (1080×2400) | 63/63 (2 developer tools skipped by design) |
+| Instrumented suite, **Android 7.0 (API 24)** phone (1080×1920) | 63/63 |
+| Instrumented suite, Android 15 10-inch tablet (2560×1600) | 63/63 |
+| Instrumented suite, **physical OnePlus 6** (Android 11, 1080×2280, arm64) | 63/63 (2 developer tools skipped by design), including the real engine on real hardware and the first-run copy of the 205 MB database |
 | Rules agreement | 40 random games of up to 120 plies each (thousands of plies) accepted by both the Kotlin rules and Pikafish; a sample of every corpus category and **every one of the 130 bundled mating puzzles** replay cleanly; an illegal move is rejected by both |
 | Engine | Pikafish rule fixtures from the iOS C++ smoke test (repetition, perpetual check/chase, mate, stalemate, bare kings, illegal history), search cancellation under 1.5 s, 16 back-to-back searches |
 | UI flows | Every screen and flow: selection and legal-move markers, captures, history/replay, undo, hints, flip, move confirmation, clocks, resign and result, save/resume, rotation, backgrounding; settings (language switch without restart, theme, labels, toggles, licences, privacy); learning browse, search, collection filter, study, bookmark, practice |
@@ -43,13 +44,13 @@ These were found by the new test suite and manual runs, not hypothetical:
 - **Android 7–9 compatibility:** Simplified/Traditional search used an API 29 call (now a bundled table on older releases); vibration and `java.time` use guarded or desugared paths.
 - **Privacy wording** still said the OS may back up app data (now accurate: backup is off).
 
-## Remaining gates before submission
+## Remaining steps before submission
 
-1. **Physical-device acceptance.** All testing so far is on emulators; the OnePlus phone was not charged. Play in airplane mode; finish games and check resign, undo, clocks, background/resume; check audio and haptics, TalkBack navigation, every language and theme; measure long engine sessions for responsiveness, memory and heat, including older hardware. Emulators cannot replace this.
-2. **Licensing evidence** (owner decisions). CCPD's 58,456 records have documented CC BY 4.0 terms. WXF's 14,386 and Dongping's 72,223 records still lack documented redistribution permission. Record the original NNUE download/version and its separate terms. Review GPL obligations against the Google Play distribution route. Public availability alone does not close these gates.
-3. **Corresponding source.** Publish a release tag matching the final bundle (the Pikafish sources are vendored in this repository, so the tag is sufficient).
-4. **Play Console steps** (need the owner's account): enrol, create the upload key and enable Play App Signing, complete the content-rating and Data-safety forms from `play-store-submission.md`, add a contact email, and upload the bundle. Google currently requires new personal developer accounts to run a closed test with a minimum number of testers for a minimum period before production access; confirm the current rule in Play Console.
-5. **Marketing art.** The feature graphic is a crop of the app artwork and the screenshots are raw captures; replace or frame them if desired.
+1. **Manual pass on the phone.** The automated suite already passes on the OnePlus 6. Still worth a few minutes by hand: play in airplane mode, listen to the sounds and feel the haptics, navigate with TalkBack, and let a long engine session run to watch heat and memory.
+2. **Paperwork.** Record where the bundled Pikafish network was originally downloaded (version and terms: https://www.pikafish.com/list.html?lang=zh-CN), and glance at the GPL obligations for Play distribution (the full source is this repository, including the vendored Pikafish sources). The learning data's provenance is recorded in the source manifests exactly as in the iOS app; if you ever want a build with only the CC BY 4.0 CCPD records, it is one command (see the README's "Learning database").
+3. **Release tag.** Publish a tag matching the final bundle.
+4. **Play Console** (needs your account): enrol, create the upload key and enable Play App Signing, complete the content-rating and Data-safety forms from `play-store-submission.md`, add a contact email, and upload the bundle. Google currently requires new personal developer accounts to run a closed test with a minimum number of testers for a minimum period before production access; confirm the current rule in Play Console.
+5. **Marketing art (optional).** The feature graphic is a crop of the app artwork and the screenshots are raw captures.
 
 Google's acceptance of the app is a separate decision from any of the evidence above.
 

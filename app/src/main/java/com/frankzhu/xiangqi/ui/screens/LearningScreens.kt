@@ -199,6 +199,18 @@ fun LearningLibraryScreen(app: AppModel, category: String) {
     var error by remember { mutableStateOf<UserFacingError?>(null) }
     var loading by remember { mutableStateOf(true) }
     var menuOpen by remember { mutableStateOf(false) }
+    // Only offer collections the bundled corpus actually contains (a CC BY-only build has no ICCS games).
+    var availableCollections by remember { mutableStateOf(MatchSubcategory.entries.toList()) }
+
+    LaunchedEffect(category) {
+        if (category != "對局") return@LaunchedEffect
+        availableCollections = withContext(Dispatchers.IO) {
+            val store = app.container.learningLibrary.load()
+            MatchSubcategory.entries.filter { option ->
+                option.prefix == null || runCatching { store.records(category = category, sourcePrefix = option.prefix, limit = 1).isNotEmpty() }.getOrDefault(true)
+            }
+        }
+    }
 
     LaunchedEffect(query, subcategory) {
         if (query.isNotEmpty()) delay(250)
@@ -236,7 +248,7 @@ fun LearningLibraryScreen(app: AppModel, category: String) {
                         Text(l10n(L10n.Learn.Subcategory.title) + ": " + l10n(subcategory.titleKey), color = colors.text)
                     }
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                        for (option in MatchSubcategory.entries) {
+                        for (option in availableCollections) {
                             DropdownMenuItem(text = { Text(l10n(option.titleKey)) }, onClick = { subcategory = option; menuOpen = false })
                         }
                     }
