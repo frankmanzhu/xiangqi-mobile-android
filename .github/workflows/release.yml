@@ -115,7 +115,7 @@ jobs:
           python3 scripts/check_release.py \
             --apk "dist/xiangqi-mobile-${{ steps.version.outputs.name }}.apk" \
             --aab "dist/xiangqi-mobile-${{ steps.version.outputs.name }}.aab"
-          sha256sum dist/* | tee dist/SHA256SUMS.txt
+          (cd dist && sha256sum *.aab *.apk | tee SHA256SUMS.txt)
 
       - uses: actions/upload-artifact@v4
         with:
