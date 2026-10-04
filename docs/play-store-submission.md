@@ -42,8 +42,8 @@ First release for Android: play Pikafish offline, two-player mode, 58,000+ games
 | --- | --- | --- |
 | App icon | `docs/play-store/icon-512.png` | 512×512 PNG |
 | Feature graphic | `docs/play-store/feature-graphic.png` | 1024×500 (a crop of the app artwork — replace with marketing art if desired) |
-| Phone screenshots | `docs/play-store/phone/*.png` | 8 captures, 1080×2400, from the real app on an Android 15 emulator |
-| 10-inch tablet screenshots | `docs/play-store/tablet-10in/*.png` | 8 captures, 2560×1600 |
+| Phone screenshots | `docs/play-store/phone/*.png` | 8 captures, 1080×1920 (9:16), from the real app on an Android 15 emulator |
+| 10-inch tablet screenshots | `docs/play-store/tablet-10in/*.png` | 8 captures, 2560×1440 (16:9) |
 
 The screenshots are raw captures (no device frames or captions) taken with demo-mode status bars by `StoreScreenshotsTest`; regenerate them with the command in that file. The launcher icon is the iOS app's artwork as an adaptive icon (with a themed monochrome layer and PNG fallbacks for Android 7).
 
