@@ -14,8 +14,9 @@ android {
         applicationId = "com.frankzhu.xiangqimobile"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        // Release builds pass these from the git tag (see .github/workflows/release.yml); local builds use 1 / 1.0.
+        versionCode = (findProperty("xiangqi.versionCode") as String?)?.toInt() ?: 1
+        versionName = (findProperty("xiangqi.versionName") as String?) ?: "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         ndk {

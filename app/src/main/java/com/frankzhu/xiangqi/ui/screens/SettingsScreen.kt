@@ -120,7 +120,7 @@ private fun SettingsMain(app: AppModel, onBack: () -> Unit, open: (SettingsPage)
                 Footnote(l10n(L10n.Settings.rulesPolicyExplanation))
             }
             SettingsSection(l10n(L10n.Settings.Section.about)) {
-                LabeledRow(l10n(L10n.Settings.version), "1.0")
+                LabeledRow(l10n(L10n.Settings.version), appVersion(context))
                 LabeledRow(l10n(L10n.Settings.computer), "Pikafish")
                 Divider()
                 NavRow(l10n(L10n.Settings.licenses)) { open(SettingsPage.Licenses) }
@@ -279,3 +279,6 @@ private fun Disclosure(title: String, body: String, mono: Boolean = false) {
         }
     }
 }
+
+private fun appVersion(context: android.content.Context): String =
+    runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "1.0"

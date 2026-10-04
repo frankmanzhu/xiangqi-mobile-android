@@ -60,22 +60,36 @@ The screenshots are raw captures (no device frames or captions) taken with demo-
 
 ## Build and signing
 
-1. Clone this repository and run `git lfs install && git lfs pull`, so `app/learning/ccpd.sqlite3` (the CC BY 4.0 learning database, ~90 MB) is the real file and not an LFS pointer. A release build refuses the small CI subset unless explicitly allowed.
-2. Create an **upload key** once and keep it out of the repository:
+**The upload key is not in this repository, and must never be.** It lives in `~/.xiangqi-signing/` on the owner's machine (`xiangqi-upload.jks` and a private `signing.env`; back both up somewhere safe and offline) and, encrypted, in this repository's GitHub Actions secrets (`XIANGQI_KEYSTORE_BASE64`, `XIANGQI_KEYSTORE_PASSWORD`, `XIANGQI_KEY_ALIAS`, `XIANGQI_KEY_PASSWORD`). Because Play App Signing holds the real app-signing key, a lost upload key can be reset through Play support; a leaked one can be revoked the same way.
 
-   ```sh
-   keytool -genkeypair -v -keystore xiangqi-upload.jks -alias upload -keyalg RSA -keysize 4096 -validity 10000
-   ```
+### Releasing (CI does everything)
 
-3. Build the bundle:
+```sh
+git tag v1.0.0 && git push origin v1.0.0
+```
 
-   ```sh
-   export XIANGQI_KEYSTORE=$PWD/xiangqi-upload.jks XIANGQI_KEYSTORE_PASSWORD=… XIANGQI_KEY_ALIAS=upload XIANGQI_KEY_PASSWORD=…
-   ./gradlew :app:bundleRelease
-   python3 scripts/check_release.py --aab app/build/outputs/bundle/release/app-release.aab
-   ```
+The **Release** workflow (`.github/workflows/release.yml`) then: checks out the code with Git LFS (the CCPD database), derives the version from the tag (`v1.2.3` → versionName `1.2.3`, versionCode `10203`), runs the localization check, unit tests and lint, builds the **signed** bundle and APK from the secrets, deletes the keystore from the runner, runs `scripts/check_release.py` on the result, attaches `xiangqi-mobile-<version>.aab`, the APK and `SHA256SUMS.txt` to a GitHub release (so the binary matches a public source tag), and — only if a `PLAY_SERVICE_ACCOUNT_JSON` secret exists — uploads the bundle to Play's **internal testing** track as a **draft**. Promoting to production is always a manual click in Play Console. Run it by hand from the Actions tab to rehearse without publishing.
 
-4. Enrol in **Play App Signing** when creating the app, then upload `app/build/outputs/bundle/release/app-release.aab`.
+Pull requests never receive the secrets, and the workflow only runs on tags and manual dispatch in the owner's repository.
+
+### One-time Play Console setup (owner's account — not something CI or an assistant can do)
+
+1. Create a Google Play developer account (one-time registration fee, identity verification).
+2. **Create app** → name *Xiangqi Mobile*, default language English, *Game*, *Free*; accept the declarations.
+3. Enable **Play App Signing** when prompted at the first upload.
+4. **Upload the first bundle by hand** (Play requires the first upload through the Console): download `xiangqi-mobile-1.0.0.aab` from the GitHub release produced by the workflow and add it to an internal-testing release. Use the CI-built bundle so versions line up.
+5. Fill in **Store listing** (text and graphics from this document and `docs/play-store/`), **Privacy policy URL**, **Content rating**, **Target audience**, **Data safety** and **App access** from the declarations above, plus your contact email.
+6. Optional, to let CI upload later bundles: *Setup → API access* → create a service account in Google Cloud, give it **Release manager** rights for this app in *Users and permissions*, create a JSON key, and store it as the `PLAY_SERVICE_ACCOUNT_JSON` repository secret.
+7. New personal accounts must run a **closed test** with a minimum number of testers for a minimum period before **Production** access; confirm the current rule in Play Console. Then promote the release to Production and **Send for review**.
+
+### Building locally
+
+```sh
+. ~/.xiangqi-signing/signing.env          # sets XIANGQI_KEYSTORE and the passwords
+git lfs pull                              # the real learning database, not a pointer
+./gradlew :app:bundleRelease
+python3 scripts/check_release.py --aab app/build/outputs/bundle/release/app-release.aab
+```
 
 **Size.** The release bundle is about 101 MB (APK 99.6 MB), comfortably under Play's 200 MB limit for a base module. Allow roughly 300 MB of free storage on the device: the installed package plus the 90 MB database and 50 MB network copied out of it on first use.
 

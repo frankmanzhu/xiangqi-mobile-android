@@ -45,7 +45,7 @@ python3 scripts/check_release.py           # pre-submission checks on the releas
 
 Run the whole suite on a phone, a tablet and the oldest supported release (Android 7.0, API 24). CI runs it on an API 34 emulator for every push. `StoreScreenshotsTest` is a developer tool that regenerates the Play Store screenshots; it is skipped unless asked for.
 
-Release builds are minified with R8 and signed from the environment (nothing secret is committed):
+Release builds are minified with R8 and signed from the environment (nothing secret is committed). Tagging `vX.Y.Z` runs the **Release** workflow, which builds, checks and signs the bundle with encrypted GitHub secrets and publishes it to a GitHub release; see [`docs/play-store-submission.md`](docs/play-store-submission.md). To build one yourself:
 
 ```bash
 export XIANGQI_KEYSTORE=/path/to/keystore.jks XIANGQI_KEYSTORE_PASSWORD=… XIANGQI_KEY_ALIAS=… XIANGQI_KEY_PASSWORD=…

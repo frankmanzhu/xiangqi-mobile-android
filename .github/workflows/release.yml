@@ -1,0 +1,148 @@
+name: Release
+
+# Builds, checks and signs the release bundle. The upload key is never in the repository: it is
+# stored as encrypted GitHub secrets and only exists on the runner for the duration of the build.
+#
+# Run it by pushing a version tag:   git tag v1.0.0 && git push origin v1.0.0
+# or by hand from the Actions tab (workflow_dispatch) to rehearse without publishing a release.
+#
+# Required secrets (Settings -> Secrets and variables -> Actions):
+#   XIANGQI_KEYSTORE_BASE64    the upload keystore, base64-encoded
+#   XIANGQI_KEYSTORE_PASSWORD  its store password
+#   XIANGQI_KEY_ALIAS          the key alias (upload)
+#   XIANGQI_KEY_PASSWORD       the key password
+# Optional, to also upload to Google Play (only after the app exists in Play Console and its first
+# bundle has been uploaded once by hand):
+#   PLAY_SERVICE_ACCOUNT_JSON  a Play Console service-account key with release permission
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      upload_to_play:
+        description: "Also upload the bundle to Google Play (internal testing track, as a draft)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write   # create the GitHub release
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  NDK_VERSION: 27.2.12479018
+
+jobs:
+  release:
+    name: Build, check and publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    # Secrets are only handed to tag pushes and manual runs, never to pull requests.
+    if: github.repository == 'frankmanzhu/xiangqi-mobile-android'
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          lfs: true   # the 90 MB CCPD learning database is stored with Git LFS
+
+      - name: The learning database is the real file, not an LFS pointer
+        run: |
+          size=$(stat -c %s app/learning/ccpd.sqlite3)
+          echo "app/learning/ccpd.sqlite3 is $size bytes"
+          test "$size" -gt 80000000
+
+      - name: Work out the version
+        id: version
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            tag="${GITHUB_REF_NAME#v}"
+            if [[ ! "$tag" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+              echo "Tag must look like v1.2.3, got $GITHUB_REF_NAME"; exit 1
+            fi
+            name="$tag"; code=$(( BASH_REMATCH[1] * 10000 + BASH_REMATCH[2] * 100 + BASH_REMATCH[3] ))
+          else
+            name="0.0.0-dev"; code=1
+          fi
+          echo "name=$name" >> "$GITHUB_OUTPUT"; echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "Version $name (versionCode $code)"
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Install NDK and CMake
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;$NDK_VERSION" "cmake;3.22.1" >/dev/null
+
+      - name: Localization, unit tests and lint
+        run: |
+          python3 scripts/l10n.py check
+          ./gradlew :core:test :app:testDebugUnitTest :app:lintDebug --stacktrace
+
+      - name: Check the signing secrets exist
+        env:
+          KS: ${{ secrets.XIANGQI_KEYSTORE_BASE64 }}
+          PW: ${{ secrets.XIANGQI_KEYSTORE_PASSWORD }}
+        run: |
+          if [[ -z "$KS" || -z "$PW" ]]; then
+            echo "::error::Signing secrets are not configured; see the comment at the top of this workflow."; exit 1
+          fi
+
+      - name: Build the signed release bundle and APK
+        env:
+          XIANGQI_KEYSTORE_B64: ${{ secrets.XIANGQI_KEYSTORE_BASE64 }}
+          XIANGQI_KEYSTORE_PASSWORD: ${{ secrets.XIANGQI_KEYSTORE_PASSWORD }}
+          XIANGQI_KEY_ALIAS: ${{ secrets.XIANGQI_KEY_ALIAS }}
+          XIANGQI_KEY_PASSWORD: ${{ secrets.XIANGQI_KEY_PASSWORD }}
+        run: |
+          echo "$XIANGQI_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          export XIANGQI_KEYSTORE="$RUNNER_TEMP/upload.jks"
+          ./gradlew :app:bundleRelease :app:assembleRelease \
+            -Pxiangqi.versionName="${{ steps.version.outputs.name }}" \
+            -Pxiangqi.versionCode="${{ steps.version.outputs.code }}" --stacktrace
+          mkdir -p dist
+          cp app/build/outputs/bundle/release/app-release.aab "dist/xiangqi-mobile-${{ steps.version.outputs.name }}.aab"
+          cp app/build/outputs/apk/release/app-release.apk "dist/xiangqi-mobile-${{ steps.version.outputs.name }}.apk"
+
+      - name: Remove the keystore from the runner
+        if: always()
+        run: rm -f "$RUNNER_TEMP/upload.jks"
+
+      - name: Release checks (manifest, permissions, 16 KB alignment, network checksum, database, signature)
+        run: |
+          python3 scripts/check_release.py \
+            --apk "dist/xiangqi-mobile-${{ steps.version.outputs.name }}.apk" \
+            --aab "dist/xiangqi-mobile-${{ steps.version.outputs.name }}.aab"
+          sha256sum dist/* | tee dist/SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ steps.version.outputs.name }}
+          path: dist/
+          if-no-files-found: error
+
+      - name: Publish the GitHub release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --title "Xiangqi Mobile for Android ${{ steps.version.outputs.name }}" \
+            --generate-notes \
+            --notes "Signed release build. The matching source is this tag; verify the files against SHA256SUMS.txt."
+
+      - name: Upload to Google Play (internal testing, draft)
+        if: github.ref_type == 'tag' || inputs.upload_to_play
+        env:
+          PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: echo "has_play=$([[ -n "$PLAY_JSON" ]] && echo true || echo false)" >> "$GITHUB_ENV"
+      - uses: r0adkll/upload-google-play@v1
+        if: env.has_play == 'true'
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.frankzhu.xiangqimobile
+          releaseFiles: dist/xiangqi-mobile-${{ steps.version.outputs.name }}.aab
+          track: internal
+          status: draft
