@@ -82,7 +82,7 @@ class PikafishEngine(private val context: Context) : ComputerPlayerClient, Rules
         configuration: ComputerConfiguration
     ): Move = searchLock.withLock {
         val handle = withContext(Dispatchers.Default) { ensureSession() }
-        val budget = budget(configuration.level)
+        val budget = scaledBudget(configuration.level, thermalStatus())
         val uci = coroutineScope {
             // The native search blocks its thread, so it runs on its own and a
             // cancelled caller asks the engine to stop instead of waiting it out.
@@ -100,6 +100,12 @@ class PikafishEngine(private val context: Context) : ComputerPlayerClient, Rules
             }
         }
         Move.fromUci(uci) ?: throw EngineException.InvalidMove(uci)
+    }
+
+    private fun thermalStatus(): Int {
+        if (android.os.Build.VERSION.SDK_INT < 29) return 0
+        val power = context.getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager
+        return power?.currentThermalStatus ?: 0
     }
 
     override suspend fun stop() {
@@ -125,6 +131,16 @@ class PikafishEngine(private val context: Context) : ComputerPlayerClient, Rules
     companion object {
         const val REVISION = "6a59ee2f7b105bff64d9efc2692591107787e2b1"
         const val NETWORK_SHA256 = "7d13d73569a9b571ba0eb20cf1596247bc2a42738967e61afef6482b231e900e"
+
+        /**
+         * Think time after backing off for heat: half at Android's SEVERE thermal status (3) and a
+         * quarter from CRITICAL (4) up, so a hot phone cools instead of being pushed harder.
+         */
+        fun scaledBudget(level: Int, thermalStatus: Int): Int = when {
+            thermalStatus >= 4 -> budget(level) / 4
+            thermalStatus >= 3 -> budget(level) / 2
+            else -> budget(level)
+        }.coerceAtLeast(50)
 
         /** Milliseconds of thinking per strength level, matching the iOS app. */
         fun budget(level: Int): Int = when (level) {

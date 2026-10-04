@@ -103,7 +103,7 @@ The app works fully offline and needs no reviewer account. On the home screen, *
 
 The licence is **GPL-3.0-or-later**, identical to the iOS app (`scripts/check_release.py` verifies the `LICENSE` file and the bundled notices byte-for-byte against the iOS repository). For every distributed version the complete corresponding source is this repository at the matching tag, including the Pikafish sources at the pinned revision, the C++ bridge and JNI layer, build scripts and the bundled network.
 
-The learning database holds 58,456 records, all from the CC BY 4.0 Chinese Chess Practical Dataset; attribution, source revision and modification notices are in `app/src/main/assets/learning/CCPD-source.json` and the in-app Licences screen. Pikafish publishes separate terms for its network weights (https://www.pikafish.com/list.html?lang=zh-CN); the app is free with no ads or purchases.
+The learning database holds 58,456 records, all from the CC BY 4.0 Chinese Chess Practical Dataset; attribution, source revision and modification notices are in `app/src/main/assets/learning/CCPD-source.json` and the in-app Licences screen. Pikafish publishes separate terms for its network weights; the app is free with no ads or purchases, and the network's origin, hash and terms are recorded in [`engine-network.md`](engine-network.md).
 
 ## Verification
 

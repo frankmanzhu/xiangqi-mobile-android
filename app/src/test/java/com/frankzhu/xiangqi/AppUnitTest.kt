@@ -85,4 +85,15 @@ class AppUnitTest {
         assertEquals(budgets.sorted(), budgets)
         assertEquals(listOf(150, 350, 750, 1500, 3000), budgets)
     }
+
+    @Test
+    fun hotDevicesGetShorterSearches() {
+        for (level in 1..5) {
+            assertEquals(PikafishEngine.budget(level), PikafishEngine.scaledBudget(level, 0))
+            assertEquals(PikafishEngine.budget(level), PikafishEngine.scaledBudget(level, 2))
+            assertEquals(PikafishEngine.budget(level) / 2, PikafishEngine.scaledBudget(level, 3))
+            assertTrue(PikafishEngine.scaledBudget(level, 5) <= maxOf(50, PikafishEngine.budget(level) / 4))
+            assertTrue(PikafishEngine.scaledBudget(level, 5) >= 50)
+        }
+    }
 }

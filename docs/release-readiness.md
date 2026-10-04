@@ -28,6 +28,10 @@ Version 1.0 (versionCode 1) is a tested release candidate. It is **not certified
 | Stress | 15,000 random monkey events on Android 7.0: no crash, no ANR |
 | Accessibility sizing | Layouts checked at 160 % (all main screens) and 200 % (game screen) system font size; board points are labelled for TalkBack |
 | Layouts | Phone portrait, phone landscape, tablet; Study and Practice reflow to board-plus-panel on wide screens |
+| Signed release + CI | Bundle and APK signed with the upload key (certificate SHA-256 `86cf44fe…2269e654`); the tag-triggered **Release** workflow was rehearsed on GitHub and produced artifacts signed with the same key, with 43 release checks passing. The key is not in the repository (private on the owner's machine and in encrypted GitHub secrets) |
+| Physical phone, signed release build, **airplane mode** (OnePlus 6, Android 11; confirmed offline) | New game, Pikafish replied in about 2 s; Learn opened the 58,456-record library (six categories) and stepped through a master game; all 90 board points labelled and tappable |
+| Haptics and sound on the phone | Android's vibration log shows the app's click effects for selecting and moving; `FeedbackInstrumentedTest` shows the audio system consumes the move cue and that muted settings play nothing |
+| Long session, physical phone | 10 minutes of strongest-level self-play: 199 moves at the 3 s budget, memory flat (323 MB start and end), battery 28.7 → 34.7 °C. Android's thermal status reached *severe* after about 7 minutes of nonstop thinking; the engine now halves its think time at *severe* and quarters it at *critical* (a second run showed 1.5 s moves, memory flat at 319 MB, battery peak 35.4 °C). OnePlus's background-power manager then ended the test process at the 10-minute mark — an artefact of a test run having no visible screen; the app never searches in the background |
 | Release build | R8-minified APK 99.6 MB and AAB 100.7 MB (Play base-module limit 200 MB); release smoke-tested by hand: engine reply, save and resume |
 | `scripts/check_release.py` | all checks pass except the expected "unsigned" note |
 | CI (GitHub Actions) | build, unit tests, lint, release assemble, l10n check, and the instrumented suite on an emulator |
@@ -46,11 +50,12 @@ These were found by the new test suite and manual runs, not hypothetical:
 
 ## Remaining steps before submission
 
-1. **Manual pass on the phone.** The automated suite already passes on the OnePlus 6. Still worth a few minutes by hand: play in airplane mode, listen to the sounds and feel the haptics, navigate with TalkBack, and let a long engine session run to watch heat and memory.
-2. **Paperwork.** Record where the bundled Pikafish network was originally downloaded (version and terms: https://www.pikafish.com/list.html?lang=zh-CN), and glance at the GPL obligations for Play distribution (the full source is this repository, including the vendored Pikafish sources).
-3. **Release tag.** Publish a tag matching the final bundle.
-4. **Play Console** (needs your account): enrol, create the upload key and enable Play App Signing, complete the content-rating and Data-safety forms from `play-store-submission.md`, add a contact email, and upload the bundle. Google currently requires new personal developer accounts to run a closed test with a minimum number of testers for a minimum period before production access; confirm the current rule in Play Console.
-5. **Marketing art (optional).** The feature graphic is a crop of the app artwork and the screenshots are raw captures.
+These need the owner's Google account or a human ear, so they cannot be done from here:
+
+1. **Play Console** — enrol, create the app, upload the first bundle by hand (take it from the GitHub release the workflow produces), fill in the listing, content rating, data safety and target-audience forms from `play-store-submission.md` (all answers are written out), add a contact email, run the closed test Google requires of new personal accounts, then promote to Production and send for review. The exact click-path is in `play-store-submission.md`.
+2. **Release tag** — `git tag v1.0.0 && git push origin v1.0.0` builds, signs and publishes the release through CI.
+3. **Hands-on check (optional)** — listen to the sounds and try TalkBack with a real voice; the automated evidence above shows the sound is played and the accessibility labels exist, but not how they sound.
+4. **Paperwork** — the Pikafish network's provenance is recorded in [`engine-network.md`](engine-network.md).
 
 Google's acceptance of the app is a separate decision from any of the evidence above.
 
