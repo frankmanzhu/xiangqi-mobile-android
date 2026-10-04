@@ -106,22 +106,17 @@ class LearningUiTest : AppUiTest() {
     }
 
     @Test
-    fun theCollectionMenuOffersOnlyCollectionsThatHaveGames() {
-        openLearn()
-        openCategory("對局")
-        waitForTextContaining(t(L10n.Learn.Subcategory.title), timeoutMs = 30_000)
-        rule.onNodeWithText(t(L10n.Learn.Subcategory.title) + ": " + t(L10n.Learn.Subcategory.allMatches)).performClick()
-        val expected = mapOf(
-            L10n.Learn.Subcategory.ccpdMasterMatches to "對局/大師對局/",
-            L10n.Learn.Subcategory.ccpdComputerMatches to "對局/電腦對局/",
-            L10n.Learn.Subcategory.wxfMatches to "ICCS/WXF/",
-            L10n.Learn.Subcategory.dongpingMatches to "ICCS/Dongping/"
-        )
-        for ((key, prefix) in expected) {
+    fun theCollectionFilterOffersOnlyCollectionsThatHaveGames() {
+        val offered = com.frankzhu.xiangqi.ui.screens.availableMatchCollections(library).map { it.prefix }
+        assertEquals("All matches is always offered", null, offered.first())
+        val expected = listOf("對局/大師對局/", "對局/電腦對局/", "ICCS/WXF/", "ICCS/Dongping/")
+        for (prefix in expected) {
             val present = library.records(category = "對局", sourcePrefix = prefix, limit = 1).isNotEmpty()
-            val shown = rule.onAllNodes(hasText(t(key))).fetchSemanticsNodes().isNotEmpty()
-            assertEquals("menu entry for $prefix", present, shown)
+            assertEquals("filter for $prefix", present, prefix in offered)
         }
+        // The bundled corpus is CCPD only, so the added ICCS collections are never offered.
+        assertFalse("ICCS/WXF/" in offered)
+        assertFalse("ICCS/Dongping/" in offered)
     }
 
     @Test

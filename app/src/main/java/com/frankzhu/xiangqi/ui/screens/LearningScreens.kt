@@ -121,13 +121,21 @@ object CCPDCategory {
     }
 }
 
-private enum class MatchSubcategory(val prefix: String?, val titleKey: LocalizedKey) {
+internal enum class MatchSubcategory(val prefix: String?, val titleKey: LocalizedKey) {
     ALL(null, L10n.Learn.Subcategory.allMatches),
     CCPD_MASTER("對局/大師對局/", L10n.Learn.Subcategory.ccpdMasterMatches),
     CCPD_COMPUTER("對局/電腦對局/", L10n.Learn.Subcategory.ccpdComputerMatches),
     WXF("ICCS/WXF/", L10n.Learn.Subcategory.wxfMatches),
     DONGPING("ICCS/Dongping/", L10n.Learn.Subcategory.dongpingMatches)
 }
+
+/** The collection filters worth offering: "All matches" plus each collection the corpus really contains. */
+internal fun availableMatchCollections(store: com.frankzhu.xiangqi.core.LearningLibraryStore): List<MatchSubcategory> =
+    MatchSubcategory.entries.filter { option ->
+        option.prefix == null || runCatching {
+            store.records(category = "對局", sourcePrefix = option.prefix, limit = 1).isNotEmpty()
+        }.getOrDefault(true)
+    }
 
 @Composable
 fun LearningHomeScreen(app: AppModel) {
@@ -204,12 +212,7 @@ fun LearningLibraryScreen(app: AppModel, category: String) {
 
     LaunchedEffect(category) {
         if (category != "對局") return@LaunchedEffect
-        availableCollections = withContext(Dispatchers.IO) {
-            val store = app.container.learningLibrary.load()
-            MatchSubcategory.entries.filter { option ->
-                option.prefix == null || runCatching { store.records(category = category, sourcePrefix = option.prefix, limit = 1).isNotEmpty() }.getOrDefault(true)
-            }
-        }
+        availableCollections = withContext(Dispatchers.IO) { availableMatchCollections(app.container.learningLibrary.load()) }
     }
 
     LaunchedEffect(query, subcategory) {
