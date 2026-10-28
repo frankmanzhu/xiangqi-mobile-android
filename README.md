@@ -17,6 +17,12 @@ This is the Android sibling of the iOS app, [frankmanzhu/xiangqi-mobile](https:/
 - **Synthesized sound and haptics** — no audio assets are bundled.
 - **Accessible board** — every point is a labelled touch target for TalkBack.
 
+## Help test the Android app
+
+Join the [Xiangqi Mobile closed test](https://play.google.com/apps/testing/com.frankzhu.xiangqimobile) to try the app before its public release. Because the test uses a Google Group, first join `xiangqi-mobile-android-testers@googlegroups.com`, then open the opt-in link with the same Google Account. Install the app from Google Play and stay opted in for at least 14 days. Feedback is welcome via [GitHub Issues](https://github.com/frankmanzhu/xiangqi-mobile-android/issues).
+
+See [tester instructions](docs/support.md#beta-testing) for details.
+
 ## Requirements
 
 - Android 7.0 (API 24) or newer, 64-bit (`arm64-v8a`, plus `x86_64` for emulators). Pikafish does not support 32-bit ARM.

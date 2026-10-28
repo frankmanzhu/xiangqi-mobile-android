@@ -4,6 +4,15 @@ Xiangqi Mobile is developed and maintained by Frank Zhu.
 
 For support, [open an issue in the Xiangqi Mobile for Android issue tracker](https://github.com/frankmanzhu/xiangqi-mobile-android/issues). Include your device model, Android version, app version, what you were doing, and what you expected. GitHub issues are public; do not include private information. A GitHub account is required to submit an issue.
 
+## Beta testing
+
+You can help test the Android app before its public release:
+
+1. Join the Google Group `xiangqi-mobile-android-testers@googlegroups.com` with the Google Account you use on your Android device.
+2. Open the [closed-test opt-in page](https://play.google.com/apps/testing/com.frankzhu.xiangqimobile) with that same account and opt in.
+3. Install Xiangqi Mobile from Google Play and try the game. Test playing against the computer, two-player mode, and the learning library if you have time.
+4. Stay opted in continuously for at least 14 days. Please report bugs or suggestions through [GitHub Issues](https://github.com/frankmanzhu/xiangqi-mobile-android/issues).
+
 ## Playing and saving
 
 Choose Play Computer for an offline game against Pikafish, or Two Players for a shared-device game. Casual games allow undo. Timed games use a separate clock for each side. Use the game menu to save and return home; Continue game resumes the active saved game. The app keeps one active game.
